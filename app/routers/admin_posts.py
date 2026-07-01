@@ -3,6 +3,7 @@ from fastapi.responses import PlainTextResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.dependencies import get_scheduler
 from app.models import Post
 from app.services.post_service import InvalidTransitionError, PostService
 
@@ -48,8 +49,9 @@ def create_post(
     slug: str = Form(""),
     publish_at: str = Form(""),
     db: Session = Depends(get_db),
+    scheduler=Depends(get_scheduler),
 ):
-    svc = PostService(db)
+    svc = PostService(db, scheduler=scheduler)
     slug_override = slug.strip() if slug.strip() else None
     svc.create_post(
         title=title,
@@ -70,12 +72,13 @@ def update_post(
     slug: str = Form(""),
     publish_at: str = Form(""),
     db: Session = Depends(get_db),
+    scheduler=Depends(get_scheduler),
 ):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
 
-    svc = PostService(db)
+    svc = PostService(db, scheduler=scheduler)
     slug_override = slug.strip() if slug.strip() else None
     pub_at = publish_at.strip() if publish_at.strip() else None
     svc.update_post(
@@ -90,11 +93,11 @@ def update_post(
 
 
 @router.post("/{post_id}/publish")
-def publish_post(post_id: int, db: Session = Depends(get_db)):
+def publish_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
-    svc = PostService(db)
+    svc = PostService(db, scheduler=scheduler)
     try:
         svc.publish_post(post)
     except InvalidTransitionError:
@@ -103,11 +106,11 @@ def publish_post(post_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{post_id}/unpublish")
-def unpublish_post(post_id: int, db: Session = Depends(get_db)):
+def unpublish_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
-    svc = PostService(db)
+    svc = PostService(db, scheduler=scheduler)
     try:
         svc.unpublish_post(post)
     except InvalidTransitionError:
@@ -116,11 +119,11 @@ def unpublish_post(post_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{post_id}/delete")
-def delete_post(post_id: int, db: Session = Depends(get_db)):
+def delete_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
-    svc = PostService(db)
+    svc = PostService(db, scheduler=scheduler)
     try:
         svc.soft_delete_post(post)
     except InvalidTransitionError:
@@ -129,11 +132,11 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{post_id}/restore")
-def restore_post(post_id: int, db: Session = Depends(get_db)):
+def restore_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
-    svc = PostService(db)
+    svc = PostService(db, scheduler=scheduler)
     svc.restore_post(post)
     return RedirectResponse(url="/admin/posts", status_code=302)
 

@@ -21,8 +21,9 @@ class InvalidTransitionError(Exception):
 
 
 class PostService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, scheduler=None):
         self.db = db
+        self._scheduler = scheduler
 
     def create_post(
         self,
@@ -80,6 +81,8 @@ class PostService:
             post.slug = slug_override.strip()
         if publish_at is not None:
             post.publish_at = datetime.fromisoformat(publish_at)
+            if post.status == "scheduled" and self._scheduler:
+                self._scheduler.schedule_post(post.id, post.publish_at)
 
         self.db.commit()
         self.db.refresh(post)
@@ -138,20 +141,25 @@ class PostService:
 
     def schedule_post(self, post: Post, publish_at: str) -> Post:
         post.status = "scheduled"
-        post.publish_at = datetime.fromisoformat(publish_at)
+        dt = datetime.fromisoformat(publish_at)
+        post.publish_at = dt
         self.db.commit()
         self.db.refresh(post)
+        if self._scheduler:
+            self._scheduler.schedule_post(post.id, dt)
         return post
 
     def unpublish_post(self, post: Post) -> Post:
-        if post.status != "published":
+        if post.status not in ("published", "scheduled"):
             raise InvalidTransitionError(
-                f"Cannot unpublish a post with status '{post.status}'. Only published posts can be unpublished."
+                f"Cannot unpublish a post with status '{post.status}'. Only published or scheduled posts can be unpublished."
             )
         post.status = "draft"
         post.publish_at = None
         self.db.commit()
         self.db.refresh(post)
+        if self._scheduler:
+            self._scheduler.unschedule_post(post.id)
         return post
 
     def soft_delete_post(self, post: Post) -> Post:

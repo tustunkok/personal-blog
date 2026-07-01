@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request
@@ -7,11 +8,23 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import auth
+from app.database import SessionLocal
 from app.routers import admin_posts
+from app.scheduler import PostScheduler
 
 BASE_DIR = Path(__file__).resolve().parent
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler = PostScheduler(SessionLocal)
+    scheduler.start()
+    app.state.scheduler = scheduler
+    yield
+    scheduler.stop()
+
+
+app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 templates = Jinja2Templates(directory=BASE_DIR / "templates")

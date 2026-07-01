@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db as original_get_db
+from app.dependencies import get_scheduler as original_get_scheduler
 from app import models  # noqa: F401
 from app.main import app
 
@@ -18,6 +19,14 @@ def clear_env():
     os.environ.pop("BLOG_ADMIN_PASSWORD", None)
     if old is not None:
         os.environ["BLOG_ADMIN_PASSWORD"] = old
+
+
+class FakeScheduler:
+    def schedule_post(self, post_id, publish_at):
+        pass
+
+    def unschedule_post(self, post_id):
+        pass
 
 
 @pytest.fixture
@@ -35,6 +44,7 @@ def client():
             db.close()
 
     app.dependency_overrides[original_get_db] = override_get_db
+    app.dependency_overrides[original_get_scheduler] = lambda: FakeScheduler()
     yield TestClient(app)
     app.dependency_overrides.clear()
     engine.dispose()
