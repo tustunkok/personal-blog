@@ -1,0 +1,216 @@
+import os
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from app.database import Base, get_db as original_get_db
+from app import models  # noqa: F401
+from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def clear_env():
+    old = os.environ.pop("BLOG_ADMIN_PASSWORD", None)
+    os.environ["BLOG_ADMIN_PASSWORD"] = "testpass"
+    yield
+    os.environ.pop("BLOG_ADMIN_PASSWORD", None)
+    if old is not None:
+        os.environ["BLOG_ADMIN_PASSWORD"] = old
+
+
+@pytest.fixture
+def client():
+    engine = create_engine(
+        "sqlite:///test_posts.db", connect_args={"check_same_thread": False}
+    )
+    Base.metadata.create_all(engine)
+
+    def override_get_db():
+        db = sessionmaker(bind=engine)()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[original_get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+    engine.dispose()
+    try:
+        os.remove("test_posts.db")
+    except OSError:
+        pass
+
+
+def _login(client: TestClient) -> str:
+    resp = client.post(
+        "/admin/login",
+        data={"password": "testpass"},
+        follow_redirects=False,
+    )
+    return resp.cookies.get("blog_session", "")
+
+
+def _auth_client(client: TestClient) -> TestClient:
+    session = _login(client)
+    client.cookies.set("blog_session", session)
+    return client
+
+
+def test_admin_posts_list_empty(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts")
+    assert resp.status_code == 200
+    assert "New Post" in resp.text
+
+
+def test_create_draft_via_form(client):
+    _auth_client(client)
+    resp = client.post(
+        "/admin/posts",
+        data={
+            "title": "My First Post",
+            "body": "Hello world content",
+            "excerpt": "A summary",
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+
+    from app.models import Post
+
+    db = app.dependency_overrides[original_get_db]
+    g = db()
+    s = next(g)
+    posts = s.query(Post).all()
+    assert len(posts) == 1
+    assert posts[0].title == "My First Post"
+    assert posts[0].status == "draft"
+    assert posts[0].slug == "my-first-post"
+
+
+def test_update_post_via_form(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Original", "body": "Original body", "excerpt": "Orig"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).first()
+    resp = client.post(
+        f"/admin/posts/{post.id}",
+        data={"title": "Updated", "body": "Updated body", "excerpt": "Upd"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    db.refresh(post)
+    assert post.title == "Updated"
+
+
+def test_publish_post(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Publish Me", "body": "Content"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).first()
+    resp = client.post(f"/admin/posts/{post.id}/publish", follow_redirects=False)
+    assert resp.status_code == 302
+    db.refresh(post)
+    assert post.status == "published"
+
+
+def test_unpublish_post(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Unpublish Me", "body": "Content"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).first()
+    client.post(f"/admin/posts/{post.id}/publish")
+    client.post(f"/admin/posts/{post.id}/unpublish")
+    db.refresh(post)
+    assert post.status == "draft"
+
+
+def test_soft_delete_post(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Delete Me", "body": "Content"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).first()
+    resp = client.post(f"/admin/posts/{post.id}/delete", follow_redirects=False)
+    assert resp.status_code == 302
+    db.refresh(post)
+    assert post.deleted_at is not None
+
+
+def test_restore_post(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Restore Me", "body": "Content"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).first()
+    client.post(f"/admin/posts/{post.id}/delete")
+    client.post(f"/admin/posts/{post.id}/restore")
+    db.refresh(post)
+    assert post.deleted_at is None
+
+
+def test_post_routes_require_auth(client):
+    resp = client.get("/admin/posts", follow_redirects=False)
+    assert resp.status_code == 302
+    assert "/admin/login" in resp.headers["location"]
+
+
+def test_post_list_shows_non_deleted_posts(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Visible", "body": "Content"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).filter(Post.title == "Visible").first()
+    client.post(f"/admin/posts/{post.id}/delete")
+
+    resp = client.get("/admin/posts")
+    assert resp.status_code == 200
+    assert "Visible" not in resp.text

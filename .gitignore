@@ -11,3 +11,4 @@ wheels/
 TOKEN
 *_cache/
 blog.db
+test*.db

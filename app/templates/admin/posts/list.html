@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Posts - Tolga Ustunkok{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Posts</h1>
+    <a href="/admin/posts/new" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">New Post</a>
+</div>
+<table class="w-full text-left border-collapse">
+    <thead>
+        <tr class="border-b border-gray-200 dark:border-gray-800">
+            <th class="py-2 px-3">Title</th>
+            <th class="py-2 px-3">Status</th>
+            <th class="py-2 px-3">Updated</th>
+            <th class="py-2 px-3">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in posts %}
+        <tr class="border-b border-gray-200 dark:border-gray-800">
+            <td class="py-2 px-3">{{ p.title }}</td>
+            <td class="py-2 px-3">
+                <span class="px-2 py-0.5 text-xs rounded
+                    {% if p.status == 'published' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                    {% elif p.status == 'scheduled' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                    {% else %}bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200{% endif %}">
+                    {{ p.status }}
+                </span>
+            </td>
+            <td class="py-2 px-3 text-sm text-gray-500">{{ p.updated_at.strftime('%Y-%m-%d') }}</td>
+            <td class="py-2 px-3 text-sm space-x-2">
+                <a href="/admin/posts/{{ p.id }}/edit" class="text-blue-600 hover:underline">Edit</a>
+                {% if p.status == 'published' %}
+                <form method="post" action="/admin/posts/{{ p.id }}/unpublish" class="inline">
+                    <button class="text-yellow-600 hover:underline">Unpublish</button>
+                </form>
+                {% elif p.status != 'published' %}
+                <form method="post" action="/admin/posts/{{ p.id }}/publish" class="inline">
+                    <button class="text-green-600 hover:underline">Publish</button>
+                </form>
+                {% endif %}
+                <form method="post" action="/admin/posts/{{ p.id }}/delete" class="inline">
+                    <button class="text-red-600 hover:underline">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        {% if not posts %}
+        <tr>
+            <td colspan="4" class="py-4 text-center text-gray-500">No posts yet. <a href="/admin/posts/new" class="text-blue-600 hover:underline">Create one</a>.</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}
