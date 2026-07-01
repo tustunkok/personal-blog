@@ -1,0 +1,11 @@
+#2 Foundation: scaffold, DB, base UI, auth - DONE (60a612b)
+
+- [x] FastAPI app scaffolded with Jinja2 templates
+- [x] Base layout template with Tailwind CSS CDN
+- [x] Dark/light mode toggle with localStorage persistence
+- [x] Admin login at /admin/login using BLOG_ADMIN_PASSWORD env var
+- [x] Session-based auth with signed cookies (itsdangerous) gating /admin routes
+- [x] SQLAlchemy models for all tables (posts, tags, series, analytics, comments, reactions, shares, settings)
+- [x] Alembic migrations initialized and applied (blog.db)
+- [x] HTMX loaded in base template
+- [x] 10 tests passing, lint clean
