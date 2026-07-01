@@ -7,6 +7,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    LargeBinary,
     String,
     Table,
     Text,
@@ -51,7 +52,7 @@ class Post(Base):
     body = Column(Text, nullable=False, default="")
     excerpt = Column(Text, nullable=False, default="")
     status = Column(String(20), nullable=False, default="draft", index=True)
-    featured_image = Column(String(255), nullable=True)
+    featured_image = Column(LargeBinary, nullable=True)
     canonical_url = Column(String(2048), nullable=True)
     publish_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
