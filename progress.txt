@@ -31,3 +31,14 @@
 - [x] Version history link on edit form
 - [x] 5 service tests + 5 HTTP integration tests (43 total passing)
 - [x] Lint clean
+
+#5 Auto-publish scheduler - DONE (625862a)
+
+- [x] APScheduler runs in-process with FastAPI lifespan (startup/shutdown)
+- [x] Catch-up on startup: past-due scheduled posts transition to published
+- [x] schedule_post()/unschedule_post()/reschedule methods on PostScheduler
+- [x] PostService notifies scheduler on schedule_post, unpublish_post, update_post (publish_at change)
+- [x] unpublish_post extended to accept scheduled posts (revert to draft + unschedule)
+- [x] FakeScheduler override in admin route tests for backward compatibility
+- [x] 10 scheduler tests + 3 service integration tests (53 total passing)
+- [x] Lint clean
