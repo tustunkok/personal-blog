@@ -20,3 +20,14 @@
 - [x] Server-side validation: InvalidTransitionError for invalid state changes
 - [x] 14 service layer tests + 9 HTTP integration tests (33 total passing)
 - [x] Lint clean
+
+#4 Post versioning + autosave - DONE (53c07b9)
+
+- [x] Every edit via update_post() snapshots pre-edit state as PostVersion
+- [x] Version history page at /admin/posts/{id}/versions with timestamped list
+- [x] Revert button restores version content as current (with pre-revert snapshot)
+- [x] Autosave endpoint at /admin/posts/{id}/autosave (5min JS interval)
+- [x] Autosave does NOT create a formal version
+- [x] Version history link on edit form
+- [x] 5 service tests + 5 HTTP integration tests (43 total passing)
+- [x] Lint clean
