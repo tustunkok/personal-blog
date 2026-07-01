@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tolga Ustunkok{% endblock %}</title>
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+    <header class="border-b border-gray-200 dark:border-gray-800">
+        <nav class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="/" class="text-lg font-bold">Tolga Ustunkok</a>
+            <div class="flex items-center gap-4">
+                <a href="/" class="text-sm hover:underline">Home</a>
+                <a href="/archive" class="text-sm hover:underline">Archive</a>
+                <a href="/tags" class="text-sm hover:underline">Tags</a>
+                <a href="/about" class="text-sm hover:underline">About</a>
+                <a href="/now" class="text-sm hover:underline">Now</a>
+                <button id="theme-toggle" class="text-sm p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800" aria-label="Toggle dark mode">
+                    <span class="dark:hidden">&#9789;</span>
+                    <span class="hidden dark:inline">&#9788;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="border-t border-gray-200 dark:border-gray-800 mt-auto">
+        <div class="max-w-4xl mx-auto px-4 py-4 text-center text-sm text-gray-500">
+            Tolga Ustunkok &middot; <a href="/feed.xml" class="hover:underline">RSS</a>
+        </div>
+    </footer>
+    <script>
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+    </script>
+</body>
+</html>

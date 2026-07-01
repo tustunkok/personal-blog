@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - Tolga Ustunkok{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
+<div class="space-y-4">
+    <a href="/admin/posts" class="block px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900">Posts</a>
+    <a href="/admin/comments" class="block px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900">Comments</a>
+    <a href="/admin/analytics" class="block px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900">Analytics</a>
+    <a href="/admin/settings" class="block px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900">Settings</a>
+    <a href="/admin/logout" class="block px-4 py-3 text-red-500 border border-red-200 dark:border-red-900 rounded-lg hover:bg-red-50 dark:hover:bg-red-950">Logout</a>
+</div>
+{% endblock %}
