@@ -28,3 +28,14 @@ Five canonical roles: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-fo
 ### Domain docs
 
 Single-context repo. Read `CONTEXT.md` for glossary and `docs/adr/` for architectural decisions. See `docs/agents/domain.md`.
+
+## Code Quality
+
+- Use `uv run ruff check` to lint code before committing.
+- Use `uv run ruff format` to format code before committing.
+- Fix all lint errors and warnings before declaring work done.
+
+## Gogs Interactions
+
+- Use `tools/gogs.py` for all interactions with the Gogs issue tracker (create issues, edit issues, manage labels).
+- Call functions from `tools.gogs` directly via `uv run python -c "import sys; sys.path.insert(0, 'tools'); import gogs; ..."`.
