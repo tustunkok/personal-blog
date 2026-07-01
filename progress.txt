@@ -9,3 +9,14 @@
 - [x] Alembic migrations initialized and applied (blog.db)
 - [x] HTMX loaded in base template
 - [x] 10 tests passing, lint clean
+
+#3 Post lifecycle: CRUD, state machine - DONE (4acbe73)
+
+- [x] PostService with state machine (draft, scheduled, published) and transition validation
+- [x] Admin post CRUD routes: create, edit, publish, unpublish, soft-delete, restore
+- [x] Post list template with status badges, quick actions (publish/unpublish/delete)
+- [x] Post edit/create form with title, slug, excerpt, body, publish_at fields
+- [x] Slug auto-generation from title with manual override support
+- [x] Server-side validation: InvalidTransitionError for invalid state changes
+- [x] 14 service layer tests + 9 HTTP integration tests (33 total passing)
+- [x] Lint clean
