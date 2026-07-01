@@ -5,6 +5,7 @@ import pytest
 
 from app.database import Base
 from app import models  # noqa: F401
+from app.models import PostVersion
 from app.services.post_service import InvalidTransitionError, PostService
 
 
@@ -195,5 +196,104 @@ def test_cannot_delete_already_deleted_post():
 
     with pytest.raises(InvalidTransitionError):
         svc.soft_delete_post(post)
+
+    db.close()
+
+
+def test_update_post_creates_version():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Original", body="original body")
+    updated = svc.update_post(post, title="Updated Title", body="new body")
+
+    versions = db.query(PostVersion).filter(PostVersion.post_id == post.id).all()
+    assert len(versions) == 1
+    assert versions[0].title == "Original"
+    assert versions[0].body == "original body"
+    assert versions[0].version_number == 1
+    assert updated.title == "Updated Title"
+
+    db.close()
+
+
+def test_multiple_updates_create_multiple_versions():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="v1")
+    svc.update_post(post, title="v2")
+    svc.update_post(post, title="v3")
+
+    versions = (
+        db.query(PostVersion)
+        .filter(PostVersion.post_id == post.id)
+        .order_by(PostVersion.version_number)
+        .all()
+    )
+    assert len(versions) == 2
+    assert versions[0].title == "v1"
+    assert versions[0].version_number == 1
+    assert versions[1].title == "v2"
+    assert versions[1].version_number == 2
+
+    db.close()
+
+
+def test_get_versions_returns_newest_first():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="v1")
+    svc.update_post(post, title="v2")
+    svc.update_post(post, title="v3")
+
+    versions = svc.get_versions(post)
+    assert len(versions) == 2
+    assert versions[0].title == "v2"
+    assert versions[1].title == "v1"
+
+    db.close()
+
+
+def test_revert_to_version_restores_content():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="v1", body="body1")
+    svc.update_post(post, title="v2", body="body2")
+    svc.update_post(post, title="v3", body="body3")
+
+    versions = svc.get_versions(post)
+    assert versions[0].title == "v2"
+
+    revert_version_id = versions[0].id
+    restored = svc.revert_to_version(post, revert_version_id)
+
+    assert restored.title == "v2"
+    assert restored.body == "body2"
+
+    db.close()
+
+
+def test_autosave_updates_post_without_creating_version():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Draft", body="initial body")
+    versions_before = (
+        db.query(PostVersion).filter(PostVersion.post_id == post.id).count()
+    )
+
+    svc.autosave_post(post, title="Draft Updated", body="autosaved body")
+
+    db.refresh(post)
+    assert post.title == "Draft Updated"
+    assert post.body == "autosaved body"
+
+    versions_after = (
+        db.query(PostVersion).filter(PostVersion.post_id == post.id).count()
+    )
+    assert versions_after == versions_before
 
     db.close()

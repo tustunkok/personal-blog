@@ -2,7 +2,7 @@
 {% block title %}{% if post %}Edit{% else %}New{% endif %} Post - Tolga Ustunkok{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold mb-6">{% if post %}Edit{% else %}New{% endif %} Post</h1>
-<form method="post" action="{% if post %}/admin/posts/{{ post.id }}{% else %}/admin/posts{% endif %}" class="space-y-4 max-w-2xl">
+<form method="post" id="edit-post-form" data-post-id="{{ post.id if post else '' }}" action="{% if post %}/admin/posts/{{ post.id }}{% else %}/admin/posts{% endif %}" class="space-y-4 max-w-2xl">
     <div>
         <label class="block text-sm font-medium mb-1">Title</label>
         <input type="text" name="title" value="{{ post.title if post else '' }}" required
@@ -33,6 +33,12 @@
     <div class="flex gap-3">
         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
         <a href="/admin/posts" class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-900">Cancel</a>
+        {% if post %}
+        <a href="/admin/posts/{{ post.id }}/versions" class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-900">Version History</a>
+        {% endif %}
     </div>
 </form>
+{% if post %}
+<script src="/static/js/autosave.js"></script>
+{% endif %}
 {% endblock %}

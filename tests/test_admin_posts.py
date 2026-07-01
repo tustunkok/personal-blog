@@ -214,3 +214,131 @@ def test_post_list_shows_non_deleted_posts(client):
     resp = client.get("/admin/posts")
     assert resp.status_code == 200
     assert "Visible" not in resp.text
+
+
+def test_version_history_page_accessible(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Versioned Post", "body": "Body v1"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).first()
+    resp = client.get(f"/admin/posts/{post.id}/versions")
+    assert resp.status_code == 200
+    assert "Version History" in resp.text
+
+
+def test_version_history_shows_versions_after_edits(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "V Post", "body": "v1"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post, PostVersion
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).first()
+    client.post(
+        f"/admin/posts/{post.id}",
+        data={"title": "V Post", "body": "v2", "excerpt": ""},
+        follow_redirects=False,
+    )
+    client.post(
+        f"/admin/posts/{post.id}",
+        data={"title": "V Post v3", "body": "v3", "excerpt": ""},
+        follow_redirects=False,
+    )
+
+    versions = db.query(PostVersion).filter(PostVersion.post_id == post.id).count()
+    assert versions == 2
+
+    resp = client.get(f"/admin/posts/{post.id}/versions")
+    assert resp.status_code == 200
+    assert "V Post" in resp.text
+    assert "Version 2" in resp.text
+
+
+def test_revert_to_version(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Revert Me", "body": "original"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post, PostVersion
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).filter(Post.title == "Revert Me").first()
+    client.post(
+        f"/admin/posts/{post.id}",
+        data={"title": "Revert Me", "body": "changed", "excerpt": ""},
+        follow_redirects=False,
+    )
+
+    version = (
+        db.query(PostVersion)
+        .filter(PostVersion.post_id == post.id)
+        .order_by(PostVersion.version_number.asc())
+        .first()
+    )
+    assert version.body == "original"
+
+    resp = client.post(
+        f"/admin/posts/{post.id}/versions/{version.id}/revert",
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+
+    db.refresh(post)
+    assert post.body == "original"
+
+
+def test_autosave_route_updates_post_without_version(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={"title": "Autosave Test", "body": "start"},
+        follow_redirects=False,
+    )
+
+    from app.models import Post, PostVersion
+
+    g = app.dependency_overrides[original_get_db]()
+    db = next(g)
+    post = db.query(Post).filter(Post.title == "Autosave Test").first()
+
+    resp = client.post(
+        f"/admin/posts/{post.id}/autosave",
+        data={"title": "Autosave Test Updated", "body": "autosaved"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert resp.text == "ok"
+
+    db.refresh(post)
+    assert post.body == "autosaved"
+    assert post.title == "Autosave Test Updated"
+
+    version_count = db.query(PostVersion).filter(PostVersion.post_id == post.id).count()
+    assert version_count == 0
+
+
+def test_version_routes_require_auth(client):
+    resp = client.get("/admin/posts/1/versions", follow_redirects=False)
+    assert resp.status_code == 302
+    assert "/admin/login" in resp.headers["location"]
+
+    resp = client.post("/admin/posts/1/versions/1/revert", follow_redirects=False)
+    assert resp.status_code == 302
+    assert "/admin/login" in resp.headers["location"]

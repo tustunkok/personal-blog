@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.models import Post
+from app.models import Post, PostVersion
 
 
 def _generate_slug(title: str) -> str:
@@ -46,6 +46,20 @@ class PostService:
         self.db.refresh(post)
         return post
 
+    def _create_version(self, post: Post) -> PostVersion:
+        max_version = (
+            self.db.query(PostVersion).filter(PostVersion.post_id == post.id).count()
+        )
+        version = PostVersion(
+            post_id=post.id,
+            title=post.title,
+            body=post.body,
+            version_number=max_version + 1,
+        )
+        self.db.add(version)
+        self.db.flush()
+        return version
+
     def update_post(
         self,
         post: Post,
@@ -55,6 +69,7 @@ class PostService:
         slug_override: str | None = None,
         publish_at: str | None = None,
     ) -> Post:
+        self._create_version(post)
         if title is not None:
             post.title = title
         if body is not None:
@@ -66,6 +81,49 @@ class PostService:
         if publish_at is not None:
             post.publish_at = datetime.fromisoformat(publish_at)
 
+        self.db.commit()
+        self.db.refresh(post)
+        return post
+
+    def get_versions(self, post: Post) -> list[PostVersion]:
+        return (
+            self.db.query(PostVersion)
+            .filter(PostVersion.post_id == post.id)
+            .order_by(PostVersion.created_at.desc())
+            .all()
+        )
+
+    def revert_to_version(self, post: Post, version_id: int) -> Post:
+        version = (
+            self.db.query(PostVersion)
+            .filter(
+                PostVersion.id == version_id,
+                PostVersion.post_id == post.id,
+            )
+            .first()
+        )
+        if not version:
+            raise ValueError("Version not found for this post.")
+        self._create_version(post)
+        post.title = version.title
+        post.body = version.body
+        self.db.commit()
+        self.db.refresh(post)
+        return post
+
+    def autosave_post(
+        self,
+        post: Post,
+        title: str | None = None,
+        body: str | None = None,
+        excerpt: str | None = None,
+    ) -> Post:
+        if title is not None:
+            post.title = title
+        if body is not None:
+            post.body = body
+        if excerpt is not None:
+            post.excerpt = excerpt
         self.db.commit()
         self.db.refresh(post)
         return post

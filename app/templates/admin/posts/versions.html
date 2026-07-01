@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Version History - {{ post.title }} - Tolga Ustunkok{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Version History</h1>
+    <a href="/admin/posts/{{ post.id }}/edit" class="text-blue-600 hover:underline">&larr; Back to Edit</a>
+</div>
+<p class="text-sm text-gray-500 mb-4">Post: <strong>{{ post.title }}</strong></p>
+{% if versions %}
+<ul class="space-y-3">
+    {% for v in versions %}
+    <li class="p-3 border border-gray-200 dark:border-gray-800 rounded flex items-center justify-between">
+        <div>
+            <span class="font-medium">Version {{ v.version_number }}</span>
+            <span class="text-sm text-gray-500 ml-2">{{ v.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            <p class="text-sm text-gray-500 mt-1 truncate max-w-md">Title: {{ v.title }}</p>
+        </div>
+        <form method="post" action="/admin/posts/{{ post.id }}/versions/{{ v.id }}/revert">
+            <button class="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600">Revert</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-gray-500">No versions yet. Edit and save this post to create a version.</p>
+{% endif %}
+{% endblock %}

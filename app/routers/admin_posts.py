@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -13,10 +13,10 @@ router = APIRouter(prefix="/admin/posts")
 def post_list(request: Request, db: Session = Depends(get_db)):
     posts = (
         db.query(Post)
-        .filter(Post.deleted_at == None)
+        .filter(Post.deleted_at.is_(None))
         .order_by(Post.updated_at.desc())
         .all()
-    )  # noqa: E711
+    )
     return request.app.state.templates.TemplateResponse(
         request, "admin/posts/list.html", {"posts": posts}
     )
@@ -136,3 +136,47 @@ def restore_post(post_id: int, db: Session = Depends(get_db)):
     svc = PostService(db)
     svc.restore_post(post)
     return RedirectResponse(url="/admin/posts", status_code=302)
+
+
+@router.get("/{post_id}/versions")
+def version_history(post_id: int, request: Request, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        return RedirectResponse(url="/admin/posts", status_code=302)
+    svc = PostService(db)
+    versions = svc.get_versions(post)
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "admin/posts/versions.html",
+        {"post": post, "versions": versions},
+    )
+
+
+@router.post("/{post_id}/versions/{version_id}/revert")
+def revert_to_version(post_id: int, version_id: int, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        return RedirectResponse(url="/admin/posts", status_code=302)
+    svc = PostService(db)
+    try:
+        svc.revert_to_version(post, version_id)
+    except ValueError:
+        return RedirectResponse(url=f"/admin/posts/{post_id}/versions", status_code=302)
+    return RedirectResponse(url=f"/admin/posts/{post_id}/edit", status_code=302)
+
+
+@router.post("/{post_id}/autosave")
+def autosave_post(
+    post_id: int,
+    request: Request,
+    title: str = Form(...),
+    body: str = Form(""),
+    excerpt: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        return PlainTextResponse("not found", status_code=404)
+    svc = PostService(db)
+    svc.autosave_post(post, title=title, body=body, excerpt=excerpt)
+    return PlainTextResponse("ok")
