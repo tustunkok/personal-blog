@@ -14,3 +14,17 @@
 - Keep the summary line under 72 characters.
 - Write in imperative mood (e.g. "add" not "added").
 - No period at the end of the summary.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live on the self-hosted Gogs instance at `https://git.toliga.com/tustunkok/personal-blog`. A Python helper script at `tools/gogs.py` wraps the Gogs REST API. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical roles: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context repo. Read `CONTEXT.md` for glossary and `docs/adr/` for architectural decisions. See `docs/agents/domain.md`.
