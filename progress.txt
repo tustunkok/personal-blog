@@ -42,3 +42,27 @@
 - [x] FakeScheduler override in admin route tests for backward compatibility
 - [x] 10 scheduler tests + 3 service integration tests (53 total passing)
 - [x] Lint clean
+
+#6 Content authoring: editor, images, code highlighting - DONE (6fe37b2)
+
+- [x] Image model + upload endpoint (POST /admin/images/upload) with SQLite blob storage
+- [x] Image serving route (GET /images/{id}) with correct content type
+- [x] EasyMDE Markdown editor with live preview on post edit form
+- [x] Paste-to-upload: clipboard images uploaded and Markdown reference inserted
+- [x] Public post page at /posts/{slug} — only published, non-deleted posts
+- [x] Markdown → HTML rendering via Python `markdown` library with fenced_code
+- [x] highlight.js CDN for client-side syntax highlighting
+- [x] Code block enhancements: line numbers, language label, copy button, filename header
+- [x] 4 image tests + 4 EasyMDE/editor tests + 7 public post tests (68 total passing)
+- [x] Lint clean
+
+#7 Tags, series, featured image - DONE (0b37acf)
+
+- [x] Tags: comma-separated tags on create/update, displayed on post page + /tags listing
+- [x] Tags: tag-filtered post listing at /tags/{name}
+- [x] Series: create/assign via admin form, position ordering
+- [x] Series: TOC + prev/next navigation on public post page
+- [x] Featured image: file upload in admin edit form, stored as blob in Post.featured_image
+- [x] Featured image: rendered on post page header
+- [x] 6 tag service tests + 6 series service tests + 1 tag display test + 1 series nav test (82 total passing)
+- [x] Lint clean
