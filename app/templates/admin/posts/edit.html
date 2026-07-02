@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.20.0/dist/easymde.min.css">
+{% endblock %}
 {% block title %}{% if post %}Edit{% else %}New{% endif %} Post - Tolga Ustunkok{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold mb-6">{% if post %}Edit{% else %}New{% endif %} Post</h1>
@@ -20,7 +23,7 @@
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Body (Markdown)</label>
-        <textarea name="body" rows="20"
+        <textarea name="body" id="body-editor" rows="20"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 font-mono">{{ post.body if post else '' }}</textarea>
     </div>
     <div>
@@ -41,4 +44,9 @@
 {% if post %}
 <script src="/static/js/autosave.js"></script>
 {% endif %}
+<script src="https://cdn.jsdelivr.net/npm/easymde@2.20.0/dist/easymde.min.js"></script>
+<script src="/static/js/paste-upload.js"></script>
+<script>
+    var easyMDE = new EasyMDE({ element: document.getElementById('body-editor') });
+</script>
 {% endblock %}

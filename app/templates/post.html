@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+{% endblock %}
+{% block title %}{{ post.title }} - Tolga Ustunkok{% endblock %}
+{% block content %}
+<article class="max-w-2xl mx-auto py-8">
+    <header class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">{{ post.title }}</h1>
+        {% if post.excerpt %}
+        <p class="text-gray-500 dark:text-gray-400 text-lg">{{ post.excerpt }}</p>
+        {% endif %}
+        <time class="text-sm text-gray-400" datetime="{{ post.publish_at.isoformat() if post.publish_at else post.created_at.isoformat() }}">
+            {{ post.publish_at.strftime('%B %d, %Y') if post.publish_at else post.created_at.strftime('%B %d, %Y') }}
+        </time>
+    </header>
+    <div class="prose dark:prose-invert max-w-none">
+        {{ content_html | safe }}
+    </div>
+</article>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script src="/static/js/code-blocks.js"></script>
+{% endblock %}

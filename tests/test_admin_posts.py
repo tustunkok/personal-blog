@@ -352,3 +352,31 @@ def test_version_routes_require_auth(client):
     resp = client.post("/admin/posts/1/versions/1/revert", follow_redirects=False)
     assert resp.status_code == 302
     assert "/admin/login" in resp.headers["location"]
+
+
+def test_edit_form_includes_easymde_css(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    assert "easymde.min.css" in resp.text
+
+
+def test_edit_form_includes_easymde_js(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    assert "easymde.min.js" in resp.text
+
+
+def test_edit_form_includes_paste_upload_js(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    assert 'src="/static/js/paste-upload.js"' in resp.text
+
+
+def test_edit_form_has_easymde_target_textarea(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    assert 'id="body-editor"' in resp.text

@@ -93,7 +93,9 @@ def update_post(
 
 
 @router.post("/{post_id}/publish")
-def publish_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
+def publish_post(
+    post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)
+):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
@@ -106,7 +108,9 @@ def publish_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(
 
 
 @router.post("/{post_id}/unpublish")
-def unpublish_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
+def unpublish_post(
+    post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)
+):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
@@ -119,7 +123,9 @@ def unpublish_post(post_id: int, db: Session = Depends(get_db), scheduler=Depend
 
 
 @router.post("/{post_id}/delete")
-def delete_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
+def delete_post(
+    post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)
+):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
@@ -132,7 +138,9 @@ def delete_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(g
 
 
 @router.post("/{post_id}/restore")
-def restore_post(post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)):
+def restore_post(
+    post_id: int, db: Session = Depends(get_db), scheduler=Depends(get_scheduler)
+):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
