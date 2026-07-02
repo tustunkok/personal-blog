@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Tolga Ustunkok (Admin){% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
+<form method="post" class="space-y-4">
+    <textarea name="content" rows="20" class="w-full border border-gray-300 dark:border-gray-600 rounded p-3 bg-white dark:bg-gray-800 font-mono text-sm">{{ content }}</textarea>
+    <div class="flex gap-2">
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">Save</button>
+        <a href="/admin" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Cancel</a>
+    </div>
+</form>
+{% endblock %}

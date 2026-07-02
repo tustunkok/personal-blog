@@ -1,4 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-3xl font-bold">Hello from personal-blog!</h1>
+{% if posts %}
+<div id="post-list" class="space-y-6">
+    {% include "_post_cards.html" %}
+</div>
+{% else %}
+<p class="text-gray-500 dark:text-gray-400 text-center py-12">No posts yet.</p>
+{% endif %}
 {% endblock %}

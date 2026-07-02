@@ -66,3 +66,13 @@
 - [x] Featured image: rendered on post page header
 - [x] 6 tag service tests + 6 series service tests + 1 tag display test + 1 series nav test (82 total passing)
 - [x] Lint clean
+
+#8 Public site: listing, search, detail, static pages - DONE
+
+- [x] Home page: published posts as excerpt cards, 10 per page, numbered pagination + HTMX load more
+- [x] FTS5 search: virtual table with triggers, /search route, search bar in header
+- [x] Archive page: posts grouped by year/month at /archive
+- [x] About and Now pages: Markdown content stored in settings, editable in admin at /admin/pages/about and /admin/pages/now
+- [x] Public pages exclude drafts, scheduled, and soft-deleted posts
+- [x] 13 new tests (95 total passing)
+- [x] Lint clean

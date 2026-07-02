@@ -1,16 +1,22 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi import Depends
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import auth
-from app.database import SessionLocal
-from app.routers import admin_posts, images, public_posts, tags
+from app.database import SessionLocal, get_db
+from app.models import Post
+from app.routers import admin_posts, archive, images, pages, public_posts, search, tags
 from app.scheduler import PostScheduler
+
+PAGE_SIZE = 10
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -35,6 +41,10 @@ app.include_router(images.router)
 app.include_router(images.public_router)
 app.include_router(public_posts.router)
 app.include_router(tags.router)
+app.include_router(search.router)
+app.include_router(archive.router)
+app.include_router(pages.router)
+app.include_router(pages.admin_router)
 
 
 class AdminAuthMiddleware(BaseHTTPMiddleware):
@@ -50,9 +60,56 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
 app.add_middleware(AdminAuthMiddleware)
 
 
+def _query_published_posts(db: Session, page: int = 1, page_size: int = PAGE_SIZE):
+    total = (
+        db.query(func.count(Post.id))
+        .filter(Post.status == "published", Post.deleted_at.is_(None))
+        .scalar()
+    )
+    posts = (
+        db.query(Post)
+        .filter(Post.status == "published", Post.deleted_at.is_(None))
+        .order_by(Post.publish_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    return posts, total, total_pages
+
+
 @app.get("/")
-def root(request: Request):
-    return templates.TemplateResponse(request, "index.html")
+def root(request: Request, page: int = Query(1, ge=1), db: Session = Depends(get_db)):
+    posts, total, total_pages = _query_published_posts(db, page=page)
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "posts": posts,
+            "page": page,
+            "total_pages": total_pages,
+            "total": total,
+            "page_size": PAGE_SIZE,
+        },
+    )
+
+
+@app.get("/posts-page")
+def posts_page(
+    request: Request, page: int = Query(1, ge=1), db: Session = Depends(get_db)
+):
+    posts, total, total_pages = _query_published_posts(db, page=page)
+    return templates.TemplateResponse(
+        request,
+        "_post_cards.html",
+        {
+            "posts": posts,
+            "page": page,
+            "total_pages": total_pages,
+            "total": total,
+            "page_size": PAGE_SIZE,
+        },
+    )
 
 
 @app.get("/admin/login")

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Search: {{ query }} - Tolga Ustunkok{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-2">Search results for "{{ query }}"</h1>
+<p class="text-sm text-gray-500 mb-6">{{ posts | length }} result{% if posts | length != 1 %}s{% endif %}</p>
+{% if posts %}
+<div class="space-y-6">
+    {% for post in posts %}
+    <article class="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-2">
+            <a href="/posts/{{ post.slug }}" class="hover:underline">{{ post.title }}</a>
+        </h2>
+        {% if post.excerpt %}
+        <p class="text-gray-500 dark:text-gray-400 mb-3">{{ post.excerpt }}</p>
+        {% endif %}
+        <time class="text-sm text-gray-400" datetime="{{ post.publish_at.isoformat() if post.publish_at else post.created_at.isoformat() }}">
+            {{ post.publish_at.strftime('%B %d, %Y') if post.publish_at else post.created_at.strftime('%B %d, %Y') }}
+        </time>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">No posts matched your search.</p>
+{% endif %}
+{% endblock %}

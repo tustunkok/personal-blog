@@ -26,6 +26,9 @@
                 <a href="/tags" class="text-sm hover:underline">Tags</a>
                 <a href="/about" class="text-sm hover:underline">About</a>
                 <a href="/now" class="text-sm hover:underline">Now</a>
+                <form action="/search" method="get" class="flex items-center">
+                    <input type="search" name="q" placeholder="Search..." class="text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 w-32 focus:w-48 transition-all focus:outline-none focus:border-gray-500">
+                </form>
                 <button id="theme-toggle" class="text-sm p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800" aria-label="Toggle dark mode">
                     <span class="dark:hidden">&#9789;</span>
                     <span class="hidden dark:inline">&#9788;</span>

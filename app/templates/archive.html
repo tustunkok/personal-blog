@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Archive - Tolga Ustunkok{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Archive</h1>
+{% if archive_map %}
+{% for year, months in archive_map | dictsort(reverse=true) %}
+<section class="mb-8">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-300">{{ year }}</h2>
+    {% for month, posts in months | dictsort(reverse=true) %}
+    <div class="mb-4">
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ month }}</h3>
+        <ul class="space-y-2">
+            {% for post in posts %}
+            <li class="flex items-center gap-2">
+                <time class="text-sm text-gray-400 w-16 shrink-0">
+                    {{ (post.publish_at or post.created_at).strftime('%d') }}
+                </time>
+                <a href="/posts/{{ post.slug }}" class="text-sm hover:underline">{{ post.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</section>
+{% endfor %}
+{% else %}
+<p class="text-gray-500">No posts yet.</p>
+{% endif %}
+{% endblock %}

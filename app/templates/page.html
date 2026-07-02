@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Tolga Ustunkok{% endblock %}
+{% block content %}
+<article class="max-w-2xl mx-auto py-8">
+    <h1 class="text-3xl font-bold mb-6">{{ title }}</h1>
+    <div class="prose dark:prose-invert max-w-none">
+        {{ content_html | safe }}
+    </div>
+</article>
+{% endblock %}
