@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import PlainTextResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_scheduler
-from app.models import Post
+from app.models import Post, Series, series_posts
 from app.services.post_service import InvalidTransitionError, PostService
 
 router = APIRouter(prefix="/admin/posts")
@@ -24,9 +24,10 @@ def post_list(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/new")
-def new_post_form(request: Request):
+def new_post_form(request: Request, db: Session = Depends(get_db)):
+    series_list = db.query(Series).order_by(Series.title).all()
     return request.app.state.templates.TemplateResponse(
-        request, "admin/posts/edit.html", {"post": None}
+        request, "admin/posts/edit.html", {"post": None, "series_list": series_list}
     )
 
 
@@ -35,8 +36,23 @@ def edit_post_form(post_id: int, request: Request, db: Session = Depends(get_db)
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse(url="/admin/posts", status_code=302)
+    series_list = db.query(Series).order_by(Series.title).all()
+    svc = PostService(db)
+    current_series = svc.get_series(post)
+    current_position = 1
+    if current_series:
+        row = db.query(series_posts).filter(series_posts.c.post_id == post.id).first()
+        if row:
+            current_position = row.position
     return request.app.state.templates.TemplateResponse(
-        request, "admin/posts/edit.html", {"post": post}
+        request,
+        "admin/posts/edit.html",
+        {
+            "post": post,
+            "series_list": series_list,
+            "current_series": current_series,
+            "current_position": current_position,
+        },
     )
 
 
@@ -48,17 +64,32 @@ def create_post(
     excerpt: str = Form(""),
     slug: str = Form(""),
     publish_at: str = Form(""),
+    tags: str = Form(""),
+    series_id: str = Form(""),
+    series_position: str = Form(""),
+    new_series: str = Form(""),
+    featured_image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
     scheduler=Depends(get_scheduler),
 ):
     svc = PostService(db, scheduler=scheduler)
     slug_override = slug.strip() if slug.strip() else None
-    svc.create_post(
+    featured_image_bytes = (
+        featured_image.file.read()
+        if featured_image and featured_image.filename
+        else None
+    )
+    post = svc.create_post(
         title=title,
         body=body,
         excerpt=excerpt,
         slug_override=slug_override,
+        tags=tags,
     )
+    if featured_image_bytes:
+        post.featured_image = featured_image_bytes
+        db.commit()
+    _handle_series_form(post, db, svc, series_id, series_position, new_series)
     return RedirectResponse(url="/admin/posts", status_code=302)
 
 
@@ -71,6 +102,11 @@ def update_post(
     excerpt: str = Form(""),
     slug: str = Form(""),
     publish_at: str = Form(""),
+    tags: str = Form(""),
+    series_id: str = Form(""),
+    series_position: str = Form(""),
+    new_series: str = Form(""),
+    featured_image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
     scheduler=Depends(get_scheduler),
 ):
@@ -88,8 +124,35 @@ def update_post(
         excerpt=excerpt,
         slug_override=slug_override,
         publish_at=pub_at,
+        tags=tags,
     )
+    if featured_image and featured_image.filename:
+        post.featured_image = featured_image.file.read()
+        db.commit()
+    _handle_series_form(post, db, svc, series_id, series_position, new_series)
     return RedirectResponse(url="/admin/posts", status_code=302)
+
+
+def _handle_series_form(
+    post: Post,
+    db: Session,
+    svc: PostService,
+    series_id: str,
+    series_position: str,
+    new_series: str,
+):
+    position = int(series_position) if series_position.strip() else 1
+    if new_series.strip():
+        series = db.query(Series).filter(Series.title == new_series.strip()).first()
+        if not series:
+            series = Series(title=new_series.strip())
+            db.add(series)
+            db.commit()
+        svc.set_series(post, series.id, position)
+    elif series_id.strip():
+        svc.set_series(post, int(series_id), position)
+    else:
+        svc.remove_from_series(post)
 
 
 @router.post("/{post_id}/publish")

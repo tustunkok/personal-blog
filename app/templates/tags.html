@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Tags - Tolga Ustunkok{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Tags</h1>
+{% if tags %}
+<div class="flex flex-wrap gap-2">
+    {% for tag in tags %}
+    <a href="/tags/{{ tag.name }}" class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-sm">
+        {{ tag.name }}
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">No tags yet.</p>
+{% endif %}
+{% endblock %}

@@ -297,3 +297,206 @@ def test_autosave_updates_post_without_creating_version():
     assert versions_after == versions_before
 
     db.close()
+
+
+def test_create_post_with_tags():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Tagged Post", tags="python, testing")
+    tag_names = [t.name for t in post.tags]
+
+    assert sorted(tag_names) == ["python", "testing"]
+
+    db.close()
+
+
+def test_create_post_with_tags_strips_whitespace():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Tagged", tags="python ,  testing   , fastapi")
+    tag_names = sorted(t.name for t in post.tags)
+
+    assert tag_names == ["fastapi", "python", "testing"]
+
+    db.close()
+
+
+def test_create_post_with_empty_tags():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="No Tags", tags="")
+    assert post.tags == []
+
+    post2 = svc.create_post(title="Also None")
+    assert post2.tags == []
+
+    db.close()
+
+
+def test_update_post_sets_tags():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Start")
+    assert post.tags == []
+
+    svc.update_post(post, title="Start", tags="python, sqlalchemy")
+    tag_names = sorted(t.name for t in post.tags)
+
+    assert tag_names == ["python", "sqlalchemy"]
+
+    db.close()
+
+
+def test_update_post_clears_tags_with_empty_string():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Tagged", tags="a, b")
+    assert len(post.tags) == 2
+
+    svc.update_post(post, title="Tagged", tags="")
+    assert post.tags == []
+
+    db.close()
+
+
+def test_tags_are_reused_across_posts():
+    db = _setup_db()
+    svc = PostService(db)
+
+    svc.create_post(title="Post A", tags="python, testing")
+    svc.create_post(title="Post B", tags="python, fastapi")
+
+    tag_count = db.query(models.Tag).count()
+    assert tag_count == 3
+
+    db.close()
+
+
+def test_set_series_assigns_post_to_series():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Series Post")
+
+    series = models.Series(title="My Series")
+    db.add(series)
+    db.commit()
+
+    svc.set_series(post, series.id, 1)
+
+    row = (
+        db.query(models.series_posts)
+        .filter(models.series_posts.c.post_id == post.id)
+        .first()
+    )
+    assert row is not None
+    assert row.series_id == series.id
+    assert row.position == 1
+
+    db.close()
+
+
+def test_set_series_updates_position():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Series Post")
+
+    series = models.Series(title="My Series")
+    db.add(series)
+    db.commit()
+
+    svc.set_series(post, series.id, 1)
+    svc.set_series(post, series.id, 5)
+
+    row = (
+        db.query(models.series_posts)
+        .filter(models.series_posts.c.post_id == post.id)
+        .first()
+    )
+    assert row.position == 5
+
+    db.close()
+
+
+def test_get_series_for_post():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Series Post")
+
+    series = models.Series(title="My Series")
+    db.add(series)
+    db.commit()
+
+    svc.set_series(post, series.id, 2)
+
+    result = svc.get_series(post)
+    assert result is not None
+    assert result.title == "My Series"
+
+    db.close()
+
+
+def test_get_series_returns_none_for_unassigned_post():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Solo Post")
+    assert svc.get_series(post) is None
+
+    db.close()
+
+
+def test_get_series_posts_returns_ordered():
+    db = _setup_db()
+    svc = PostService(db)
+
+    series = models.Series(title="Ordered Series")
+    db.add(series)
+    db.commit()
+
+    post_a = svc.create_post(title="Part 1")
+    post_b = svc.create_post(title="Part 2")
+    post_c = svc.create_post(title="Part 3")
+
+    svc.set_series(post_a, series.id, 1)
+    svc.set_series(post_b, series.id, 2)
+    svc.set_series(post_c, series.id, 3)
+
+    posts = svc.get_series_posts(series.id)
+    assert len(posts) == 3
+    assert posts[0].title == "Part 1"
+    assert posts[1].title == "Part 2"
+    assert posts[2].title == "Part 3"
+
+    db.close()
+
+
+def test_remove_from_series():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Leaving")
+
+    series = models.Series(title="My Series")
+    db.add(series)
+    db.commit()
+
+    svc.set_series(post, series.id, 1)
+    svc.remove_from_series(post)
+
+    assert svc.get_series(post) is None
+    row = (
+        db.query(models.series_posts)
+        .filter(models.series_posts.c.post_id == post.id)
+        .first()
+    )
+    assert row is None
+
+    db.close()

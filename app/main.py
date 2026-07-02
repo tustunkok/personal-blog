@@ -9,7 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import auth
 from app.database import SessionLocal
-from app.routers import admin_posts, images, public_posts
+from app.routers import admin_posts, images, public_posts, tags
 from app.scheduler import PostScheduler
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -34,6 +34,7 @@ app.include_router(admin_posts.router)
 app.include_router(images.router)
 app.include_router(images.public_router)
 app.include_router(public_posts.router)
+app.include_router(tags.router)
 
 
 class AdminAuthMiddleware(BaseHTTPMiddleware):

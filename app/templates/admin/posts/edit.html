@@ -5,7 +5,7 @@
 {% block title %}{% if post %}Edit{% else %}New{% endif %} Post - Tolga Ustunkok{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold mb-6">{% if post %}Edit{% else %}New{% endif %} Post</h1>
-<form method="post" id="edit-post-form" data-post-id="{{ post.id if post else '' }}" action="{% if post %}/admin/posts/{{ post.id }}{% else %}/admin/posts{% endif %}" class="space-y-4 max-w-2xl">
+<form method="post" id="edit-post-form" data-post-id="{{ post.id if post else '' }}" enctype="multipart/form-data" action="{% if post %}/admin/posts/{{ post.id }}{% else %}/admin/posts{% endif %}" class="space-y-4 max-w-2xl">
     <div>
         <label class="block text-sm font-medium mb-1">Title</label>
         <input type="text" name="title" value="{{ post.title if post else '' }}" required
@@ -21,6 +21,43 @@
         <textarea name="excerpt" rows="2"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">{{ post.excerpt if post else '' }}</textarea>
     </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Featured Image</label>
+        {% if post and post.featured_image %}
+        <img src="/posts/{{ post.slug }}/featured-image" class="w-48 h-32 object-cover rounded mb-2 border border-gray-300 dark:border-gray-700">
+        {% endif %}
+        <input type="file" name="featured_image" accept="image/*"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Tags (comma-separated)</label>
+        <input type="text" name="tags"
+            value="{{ post.tags | map(attribute='name') | join(', ') if post else '' }}"
+            placeholder="python, fastapi, testing"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+    </div>
+    <fieldset class="border border-gray-300 dark:border-gray-700 rounded p-4">
+        <legend class="text-sm font-medium px-2">Series</legend>
+        <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1">Existing Series</label>
+            <select name="series_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                <option value="">-- None --</option>
+                {% for s in series_list %}
+                <option value="{{ s.id }}" {% if current_series and current_series.id == s.id %}selected{% endif %}>{{ s.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1">Position in Series</label>
+            <input type="number" name="series_position" value="{{ current_position if current_series else 1 }}"
+                class="w-24 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Or Create New Series</label>
+            <input type="text" name="new_series" value="" placeholder="New series name"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+        </div>
+    </fieldset>
     <div>
         <label class="block text-sm font-medium mb-1">Body (Markdown)</label>
         <textarea name="body" id="body-editor" rows="20"

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.models import Post, PostVersion
+from app.models import Post, PostVersion, Series, Tag, series_posts
 
 
 def _generate_slug(title: str) -> str:
@@ -25,6 +25,18 @@ class PostService:
         self.db = db
         self._scheduler = scheduler
 
+    def _sync_tags(self, post: Post, tags_str: str) -> None:
+        tag_names = [t.strip() for t in tags_str.split(",") if t.strip()]
+        tags = []
+        for name in tag_names:
+            tag = self.db.query(Tag).filter(Tag.name == name).first()
+            if not tag:
+                tag = Tag(name=name)
+                self.db.add(tag)
+                self.db.flush()
+            tags.append(tag)
+        post.tags = tags
+
     def create_post(
         self,
         title: str,
@@ -32,6 +44,7 @@ class PostService:
         excerpt: str = "",
         slug_override: str | None = None,
         publish_at: str | None = None,
+        tags: str = "",
     ) -> Post:
         slug = slug_override.strip() if slug_override else _generate_slug(title)
         post = Post(
@@ -43,6 +56,9 @@ class PostService:
             publish_at=datetime.fromisoformat(publish_at) if publish_at else None,
         )
         self.db.add(post)
+        self.db.flush()
+        if tags.strip():
+            self._sync_tags(post, tags)
         self.db.commit()
         self.db.refresh(post)
         return post
@@ -69,6 +85,7 @@ class PostService:
         excerpt: str | None = None,
         slug_override: str | None = None,
         publish_at: str | None = None,
+        tags: str | None = None,
     ) -> Post:
         self._create_version(post)
         if title is not None:
@@ -83,6 +100,8 @@ class PostService:
             post.publish_at = datetime.fromisoformat(publish_at)
             if post.status == "scheduled" and self._scheduler:
                 self._scheduler.schedule_post(post.id, post.publish_at)
+        if tags is not None:
+            self._sync_tags(post, tags)
 
         self.db.commit()
         self.db.refresh(post)
@@ -175,3 +194,35 @@ class PostService:
         self.db.commit()
         self.db.refresh(post)
         return post
+
+    def set_series(self, post: Post, series_id: int, position: int) -> None:
+        self.db.execute(series_posts.delete().where(series_posts.c.post_id == post.id))
+        self.db.execute(
+            series_posts.insert().values(
+                series_id=series_id, post_id=post.id, position=position
+            )
+        )
+        self.db.commit()
+
+    def remove_from_series(self, post: Post) -> None:
+        self.db.execute(series_posts.delete().where(series_posts.c.post_id == post.id))
+        self.db.commit()
+
+    def get_series(self, post: Post) -> Series | None:
+        row = (
+            self.db.query(series_posts)
+            .filter(series_posts.c.post_id == post.id)
+            .first()
+        )
+        if not row:
+            return None
+        return self.db.query(Series).filter(Series.id == row.series_id).first()
+
+    def get_series_posts(self, series_id: int) -> list[Post]:
+        return (
+            self.db.query(Post)
+            .join(series_posts, Post.id == series_posts.c.post_id)
+            .filter(series_posts.c.series_id == series_id)
+            .order_by(series_posts.c.position)
+            .all()
+        )

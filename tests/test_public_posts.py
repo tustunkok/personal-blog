@@ -165,3 +165,75 @@ def test_post_page_loads_code_blocks_js(client):
     resp = client.get("/posts/cb-post")
     assert resp.status_code == 200
     assert 'src="/static/js/code-blocks.js"' in resp.text
+
+
+def test_post_page_displays_tags(client):
+    _auth_client(client)
+    client.post(
+        "/admin/posts",
+        data={
+            "title": "Tagged Post",
+            "body": "Content",
+            "excerpt": "x",
+            "tags": "python, fastapi",
+        },
+        follow_redirects=False,
+    )
+    client.post("/admin/posts/1/publish", follow_redirects=False)
+
+    resp = client.get("/posts/tagged-post")
+    assert resp.status_code == 200
+    assert "python" in resp.text
+    assert "fastapi" in resp.text
+    assert 'href="/tags/python"' in resp.text
+    assert 'href="/tags/fastapi"' in resp.text
+
+
+def test_post_page_shows_series_navigation(client):
+    ac = _auth_client(client)
+    ac.post(
+        "/admin/posts",
+        data={
+            "title": "Part 1",
+            "body": "First",
+            "excerpt": "x",
+            "new_series": "Trilogy",
+            "series_position": "1",
+        },
+        follow_redirects=False,
+    )
+    ac.post(
+        "/admin/posts",
+        data={
+            "title": "Part 2",
+            "body": "Second",
+            "excerpt": "x",
+            "series_id": "1",
+            "series_position": "2",
+        },
+        follow_redirects=False,
+    )
+    ac.post(
+        "/admin/posts",
+        data={
+            "title": "Part 3",
+            "body": "Third",
+            "excerpt": "x",
+            "series_id": "1",
+            "series_position": "3",
+        },
+        follow_redirects=False,
+    )
+    ac.post("/admin/posts/1/publish", follow_redirects=False)
+    ac.post("/admin/posts/2/publish", follow_redirects=False)
+    ac.post("/admin/posts/3/publish", follow_redirects=False)
+
+    resp = client.get("/posts/part-2")
+    assert resp.status_code == 200
+    assert "Part 2 of" in resp.text
+    assert "Trilogy" in resp.text
+    assert "Series Table of Contents" in resp.text
+    assert "Part 1" in resp.text
+    assert "Part 3" in resp.text
+    assert "Previous" in resp.text
+    assert "Next" in resp.text

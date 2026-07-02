@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Tag: {{ tag.name }} - Tolga Ustunkok{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Posts tagged "{{ tag.name }}"</h1>
+{% if posts %}
+<div class="space-y-6">
+    {% for p in posts %}
+    <article class="border border-gray-200 dark:border-gray-800 rounded p-4">
+        <h2 class="text-xl font-semibold">
+            <a href="/posts/{{ p.slug }}" class="hover:underline">{{ p.title }}</a>
+        </h2>
+        {% if p.excerpt %}
+        <p class="text-gray-500 dark:text-gray-400 mt-1">{{ p.excerpt }}</p>
+        {% endif %}
+        <time class="text-sm text-gray-400" datetime="{{ p.publish_at.isoformat() if p.publish_at else p.created_at.isoformat() }}">
+            {{ p.publish_at.strftime('%B %d, %Y') if p.publish_at else p.created_at.strftime('%B %d, %Y') }}
+        </time>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">No posts with this tag yet.</p>
+{% endif %}
+{% endblock %}
