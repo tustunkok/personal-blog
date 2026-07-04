@@ -151,9 +151,63 @@ def test_soft_delete_post():
     svc = PostService(db)
 
     post = svc.create_post(title="Delete Me")
+    original_slug = post.slug
     deleted = svc.soft_delete_post(post)
 
     assert deleted.deleted_at is not None
+    assert deleted.slug != original_slug
+    assert deleted.slug.startswith(f"deleted-{post.id}-")
+
+    db.close()
+    db.bind.dispose()
+
+
+def test_create_post_with_same_slug_after_soft_delete():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Original", slug_override="my-slug")
+    assert post.slug == "my-slug"
+    svc.soft_delete_post(post)
+
+    post2 = svc.create_post(title="Reborn", slug_override="my-slug")
+    assert post2.slug == "my-slug"
+    assert post2.id != post.id
+
+    db.close()
+    db.bind.dispose()
+
+
+def test_restore_post_recovers_original_slug():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post = svc.create_post(title="Restore Me")
+    original_slug = post.slug
+    svc.soft_delete_post(post)
+    restored = svc.restore_post(post)
+
+    assert restored.deleted_at is None
+    assert restored.slug == original_slug
+
+    db.close()
+    db.bind.dispose()
+
+
+def test_restore_post_uniquifies_slug_when_original_taken():
+    db = _setup_db()
+    svc = PostService(db)
+
+    post1 = svc.create_post(title="First", slug_override="collision")
+    svc.soft_delete_post(post1)
+
+    post2 = svc.create_post(title="Second", slug_override="collision")
+    assert post2.slug == "collision"
+
+    restored = svc.restore_post(post1)
+    assert restored.deleted_at is None
+    assert restored.slug != "collision"
+    assert restored.slug.startswith("collision-")
 
     db.close()
     db.bind.dispose()

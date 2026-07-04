@@ -1,17 +1,19 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from alembic import command, config
 from fastapi import FastAPI, Form, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Depends
-from sqlalchemy import func
+from sqlalchemy import func, inspect
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import auth
-from app.database import SessionLocal, get_db
+from app import models  # noqa: F401
+from app.database import Base, SessionLocal, engine, get_db
 from app.models import Post
 from app.routers import (
     admin_analytics,
@@ -37,6 +39,11 @@ BASE_DIR = Path(__file__).resolve().parent
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    inspector = inspect(engine)
+    if not inspector.has_table("posts"):
+        Base.metadata.create_all(bind=engine)
+        alembic_cfg = config.Config("alembic.ini")
+        command.stamp(alembic_cfg, "head")
     scheduler = PostScheduler(SessionLocal)
     scheduler.start()
     app.state.scheduler = scheduler

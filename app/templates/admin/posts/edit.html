@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.20.0/dist/easymde.min.css">
+<style>
+    .editor-preview p { margin-top: 1.25em; margin-bottom: 1.25em; }
+    .editor-preview p:first-child { margin-top: 0; }
+    .editor-preview p:last-child { margin-bottom: 0; }
+</style>
 {% endblock %}
 {% block title %}{% if post %}Edit{% else %}New{% endif %} Post - Tolga Ustunkok{% endblock %}
 {% block content %}
@@ -84,6 +89,20 @@
 <script src="https://cdn.jsdelivr.net/npm/easymde@2.20.0/dist/easymde.min.js"></script>
 <script src="/static/js/paste-upload.js"></script>
 <script>
-    var easyMDE = new EasyMDE({ element: document.getElementById('body-editor') });
+    var easyMDE = new EasyMDE({
+        element: document.getElementById('body-editor'),
+        previewRender: function(plainText, preview) {
+            var html = this.parent.markdown(plainText);
+            setTimeout(function() {
+                if (typeof renderMathInElement === 'function') {
+                    renderMathInElement(preview, {delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]});
+                }
+            }, 10);
+            return html;
+        }
+    });
 </script>
 {% endblock %}

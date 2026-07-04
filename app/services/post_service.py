@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.models import Post, PostVersion, Series, Tag, series_posts
 
+_DELETED_PREFIX = "deleted-"
+
 
 def _generate_slug(title: str) -> str:
     slug = (
@@ -184,16 +186,38 @@ class PostService:
     def soft_delete_post(self, post: Post) -> Post:
         if post.deleted_at is not None:
             raise InvalidTransitionError("Post is already soft-deleted.")
+        post.slug = f"{_DELETED_PREFIX}{post.id}-{post.slug}"
         post.deleted_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(post)
         return post
 
     def restore_post(self, post: Post) -> Post:
+        if post.deleted_at is not None:
+            prefix = f"{_DELETED_PREFIX}{post.id}-"
+            if post.slug.startswith(prefix):
+                desired = post.slug[len(prefix):]
+                desired = self._unique_slug(desired, exclude_id=post.id)
+                post.slug = desired
         post.deleted_at = None
         self.db.commit()
         self.db.refresh(post)
         return post
+
+    def _unique_slug(self, slug: str, exclude_id: int) -> str:
+        existing = (
+            self.db.query(Post)
+            .filter(Post.slug == slug, Post.id != exclude_id, Post.deleted_at.is_(None))
+            .first()
+        )
+        if not existing:
+            return slug
+        counter = 1
+        while True:
+            candidate = f"{slug}-{counter}"
+            if not self.db.query(Post).filter(Post.slug == candidate, Post.id != exclude_id, Post.deleted_at.is_(None)).first():
+                return candidate
+            counter += 1
 
     def set_series(self, post: Post, series_id: int, position: int) -> None:
         self.db.execute(series_posts.delete().where(series_posts.c.post_id == post.id))
