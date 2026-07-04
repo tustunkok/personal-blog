@@ -1,0 +1,18 @@
+<div id="shares-section" class="flex items-center gap-2 py-4 border-b border-gray-200 dark:border-gray-700">
+    <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Share:</span>
+    {% set platforms = [
+        ("twitter", "https://twitter.com/intent/tweet?url={{ request.base_url }}posts/{{ post.slug }}&text={{ post.title | urlencode }}"),
+        ("linkedin", "https://www.linkedin.com/sharing/share-offsite/?url={{ request.base_url }}posts/{{ post.slug }}"),
+        ("reddit", "https://www.reddit.com/submit?url={{ request.base_url }}posts/{{ post.slug }}&title={{ post.title | urlencode }}"),
+        ("hackernews", "https://news.ycombinator.com/submitlink?u={{ request.base_url }}posts/{{ post.slug }}&t={{ post.title | urlencode }}"),
+        ("facebook", "https://www.facebook.com/sharer/sharer.php?u={{ request.base_url }}posts/{{ post.slug }}"),
+    ] %}
+    {% for platform, url in platforms %}
+    <button
+        class="px-3 py-1 text-xs rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        onclick="var w=window.open('{{ url }}','_blank','width=600,height=400');navigator.sendBeacon('/posts/{{ post.slug }}/shares','platform={{ platform }}');return false;"
+    >
+        {{ platform | capitalize }}
+    </button>
+    {% endfor %}
+</div>

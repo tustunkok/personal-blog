@@ -20,6 +20,7 @@ from app.routers import (
     images,
     pages,
     public_posts,
+    reactions_shares,
     search,
     seo,
     tags,
@@ -58,6 +59,8 @@ app.include_router(pages.admin_router)
 app.include_router(seo.router)
 app.include_router(comments.router)
 app.include_router(comments.public_router)
+app.include_router(reactions_shares.reactions_router)
+app.include_router(reactions_shares.shares_router)
 
 
 class AdminAuthMiddleware(BaseHTTPMiddleware):

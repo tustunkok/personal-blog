@@ -205,6 +205,7 @@ class Reaction(Base):
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=False, index=True)
     reaction_type = Column(String(20), nullable=False)
     fingerprint_id = Column(Integer, ForeignKey("fingerprints.id"), nullable=True)
+    fingerprint_hash = Column(String(64), nullable=True, index=True)
     ip = Column(String(45), nullable=True)
     user_agent = Column(String(512), nullable=True)
     scroll_position = Column(Float, nullable=True)

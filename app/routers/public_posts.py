@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Comment, Post
 from app.services.post_service import PostService
+from app.services.reaction_service import ReactionService
 
 router = APIRouter()
 
@@ -58,6 +59,8 @@ def view_post(slug: str, request: Request, db: Session = Depends(get_db)):
             "prev_post": prev_post,
             "next_post": next_post,
             "comments_html": _render_comments(request, db, post),
+            "reactions_html": _render_reactions(request, db, post),
+            "shares_html": _render_shares(request, post),
         },
     )
 
@@ -112,6 +115,20 @@ def serve_og_image(slug: str, request: Request, db: Session = Depends(get_db)):
     img.save(buf, format="PNG")
     buf.seek(0)
     return Response(content=buf.getvalue(), media_type="image/png")
+
+
+def _render_reactions(request: Request, db: Session, post: Post) -> str:
+    svc = ReactionService(db)
+    counts = svc.get_counts(post.id)
+    return request.app.state.templates.get_template("_reactions.html").render(
+        {"request": request, "post": post, "reaction_counts": counts}
+    )
+
+
+def _render_shares(request: Request, post: Post) -> str:
+    return request.app.state.templates.get_template("_shares.html").render(
+        {"request": request, "post": post}
+    )
 
 
 def _render_comments(request: Request, db: Session, post: Post) -> str:

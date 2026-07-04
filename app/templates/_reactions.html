@@ -1,0 +1,45 @@
+<div id="reactions-section" class="flex items-center gap-3 py-4 border-b border-gray-200 dark:border-gray-700">
+    {% set types = [
+        ("like", "👍"),
+        ("clap", "👏"),
+        ("bookmark", "🔖"),
+        ("insightful", "💡"),
+        ("mind-blown", "🤯")
+    ] %}
+    {% for rtype, emoji in types %}
+    <button
+        class="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        hx-post="/posts/{{ post.slug }}/reactions"
+        hx-target="#reactions-section"
+        hx-swap="outerHTML"
+        hx-vals='{"reaction_type":"{{ rtype }}"}'
+        hx-include="#reactions-section"
+    >
+        <span>{{ emoji }}</span>
+        <span class="text-gray-600 dark:text-gray-400">{{ reaction_counts.get(rtype, 0) }}</span>
+    </button>
+    {% endfor %}
+    <input type="hidden" name="fingerprint" id="reactions-fingerprint" value="">
+    <input type="hidden" name="scroll_position" id="reactions-scroll-position" value="">
+    <input type="hidden" name="time_to_react" id="reactions-time-to-react" value="">
+</div>
+<script>
+(function() {
+    var start = Date.now();
+    var scrollPos = 0;
+    window.addEventListener('scroll', function() {
+        var h = document.documentElement.scrollHeight - window.innerHeight;
+        scrollPos = h > 0 ? window.scrollY / h : 0;
+    });
+    var section = document.getElementById('reactions-section');
+    if (section) {
+        var btns = section.querySelectorAll('button[hx-post]');
+        btns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.getElementById('reactions-scroll-position').value = scrollPos.toFixed(4);
+                document.getElementById('reactions-time-to-react').value = ((Date.now() - start) / 1000).toFixed(2);
+            });
+        });
+    }
+})();
+</script>
