@@ -74,6 +74,12 @@ class AnalyticsService:
         user_agent: str | None = None,
         referrer: str | None = None,
         accept_language: str | None = None,
+        country: str | None = None,
+        city: str | None = None,
+        region: str | None = None,
+        isp: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
     ) -> int:
         fingerprint_id = None
         if fingerprint_hash:
@@ -93,6 +99,12 @@ class AnalyticsService:
             user_agent=user_agent[:512] if user_agent else None,
             referrer=referrer[:2048] if referrer else None,
             accept_language=accept_language[:200] if accept_language else None,
+            country=country,
+            city=city,
+            region=region,
+            isp=isp,
+            latitude=latitude,
+            longitude=longitude,
         )
         self.db.add(visit)
         self.db.commit()
@@ -225,6 +237,152 @@ class AnalyticsService:
 
         result = self.db.query(func.avg(PageSession.scroll_depth)).scalar()
         return round(float(result), 1) if result else None
+
+    def scroll_depth_distribution(self) -> list[dict]:
+        from app.models import PageSession
+
+        buckets = [
+            ("0-25%", (0, 0.25)),
+            ("25-50%", (0.25, 0.50)),
+            ("50-75%", (0.50, 0.75)),
+            ("75-99%", (0.75, 1.0)),
+            ("100%", (1.0, 1.1)),
+        ]
+        result = []
+        for label, (lo, hi) in buckets:
+            cnt = (
+                self.db.query(PageSession)
+                .filter(PageSession.scroll_depth >= lo, PageSession.scroll_depth < hi)
+                .count()
+            )
+            result.append({"bucket": label, "count": cnt})
+        return result
+
+    def countries_breakdown(self) -> list[dict]:
+        rows = (
+            self.db.query(Visit.country, func.count(Visit.id).label("cnt"))
+            .filter(Visit.country.isnot(None), Visit.country != "")
+            .group_by(Visit.country)
+            .order_by(func.count(Visit.id).desc())
+            .all()
+        )
+        result = []
+        for r in rows:
+            cities = (
+                self.db.query(Visit.city, func.count(Visit.id).label("cnt"))
+                .filter(
+                    Visit.country == r.country, Visit.city.isnot(None), Visit.city != ""
+                )
+                .group_by(Visit.city)
+                .order_by(func.count(Visit.id).desc())
+                .all()
+            )
+            cities_list = [{"city": c.city, "count": c.cnt} for c in cities]
+            result.append(
+                {
+                    "country": r.country,
+                    "count": r.cnt,
+                    "cities": cities_list,
+                }
+            )
+        return result
+
+    def browser_breakdown(self) -> list[dict]:
+        from app.models import Fingerprint
+
+        rows = (
+            self.db.query(Fingerprint.browser, func.count(Visit.id).label("cnt"))
+            .join(Visit, Visit.fingerprint_id == Fingerprint.id)
+            .filter(Fingerprint.browser.isnot(None))
+            .group_by(Fingerprint.browser)
+            .order_by(func.count(Visit.id).desc())
+            .all()
+        )
+        return [{"browser": r.browser, "count": r.cnt} for r in rows]
+
+    def os_breakdown(self) -> list[dict]:
+        from app.models import Fingerprint
+
+        rows = (
+            self.db.query(Fingerprint.os, func.count(Visit.id).label("cnt"))
+            .join(Visit, Visit.fingerprint_id == Fingerprint.id)
+            .filter(Fingerprint.os.isnot(None))
+            .group_by(Fingerprint.os)
+            .order_by(func.count(Visit.id).desc())
+            .all()
+        )
+        return [{"os": r.os, "count": r.cnt} for r in rows]
+
+    def device_breakdown(self) -> list[dict]:
+        from app.models import Fingerprint
+
+        rows = (
+            self.db.query(Fingerprint.touch_support, func.count(Visit.id).label("cnt"))
+            .join(Visit, Visit.fingerprint_id == Fingerprint.id)
+            .group_by(Fingerprint.touch_support)
+            .all()
+        )
+        result = []
+        for r in rows:
+            label = "Mobile" if r.touch_support else "Desktop"
+            result.append({"type": label, "count": r.cnt})
+        return result
+
+    def engagement_breakdown(self) -> list[dict]:
+        from app.models import EngagementEvent
+
+        rows = (
+            self.db.query(
+                EngagementEvent.event_type, func.count(EngagementEvent.id).label("cnt")
+            )
+            .group_by(EngagementEvent.event_type)
+            .order_by(func.count(EngagementEvent.id).desc())
+            .all()
+        )
+        return [{"event_type": r.event_type, "count": r.cnt} for r in rows]
+
+    def top_navigation_paths(self, limit: int = 10) -> list[dict]:
+        from app.models import NavigationPath
+
+        rows = (
+            self.db.query(
+                NavigationPath.from_url, func.count(NavigationPath.id).label("cnt")
+            )
+            .filter(NavigationPath.from_url.isnot(None), NavigationPath.from_url != "")
+            .group_by(NavigationPath.from_url)
+            .order_by(func.count(NavigationPath.id).desc())
+            .limit(limit)
+            .all()
+        )
+        return [{"from_url": r.from_url, "count": r.cnt} for r in rows]
+
+    def geo_visits_for_map(self) -> list[dict]:
+        rows = (
+            self.db.query(
+                Visit.city,
+                Visit.country,
+                Visit.latitude,
+                Visit.longitude,
+                func.count(Visit.id).label("cnt"),
+            )
+            .filter(
+                Visit.latitude.isnot(None),
+                Visit.longitude.isnot(None),
+                Visit.city.isnot(None),
+            )
+            .group_by(Visit.city, Visit.country, Visit.latitude, Visit.longitude)
+            .all()
+        )
+        return [
+            {
+                "city": r.city,
+                "country": r.country,
+                "latitude": r.latitude,
+                "longitude": r.longitude,
+                "count": r.cnt,
+            }
+            for r in rows
+        ]
 
     def comment_activity_by_date(self, days: int = 30) -> list[dict]:
         from app.models import Comment

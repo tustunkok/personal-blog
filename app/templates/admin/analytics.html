@@ -2,12 +2,14 @@
 {% block title %}Analytics - Tolga Ustunkok{% endblock %}
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold mb-6">Analytics</h1>
 <a href="/admin" class="text-sm text-blue-600 hover:underline">&larr; Back to Dashboard</a>
 
-<div class="grid grid-cols-3 gap-4 my-6">
+<div class="grid grid-cols-4 gap-4 my-6">
     <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <p class="text-sm text-gray-500">Total Visits</p>
         <p class="text-2xl font-bold">{{ visits_total }}</p>
@@ -20,16 +22,13 @@
         <p class="text-sm text-gray-500">New Comments</p>
         <p class="text-2xl font-bold">{{ new_comments }}</p>
     </div>
-</div>
-
-{% if avg_scroll is not none %}
-<div class="grid grid-cols-1 gap-4 mb-6">
+    {% if avg_scroll is not none %}
     <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <p class="text-sm text-gray-500">Avg Scroll Depth</p>
         <p class="text-2xl font-bold">{{ avg_scroll }}%</p>
     </div>
+    {% endif %}
 </div>
-{% endif %}
 
 <div class="flex gap-4 mb-6">
     <a href="/admin/analytics/visits.csv" class="px-3 py-1 border border-gray-300 dark:border-gray-700 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-900">Export CSV</a>
@@ -45,20 +44,109 @@
         <h2 class="text-lg font-semibold mb-3">Top Posts</h2>
         <canvas id="topPostsChart" height="200"></canvas>
     </div>
-    {% if reactions %}
+    {% if scroll_dist %}
     <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-        <h2 class="text-lg font-semibold mb-3">Reactions</h2>
-        <canvas id="reactionsChart" height="200"></canvas>
+        <h2 class="text-lg font-semibold mb-3">Scroll Depth Distribution</h2>
+        <canvas id="scrollDistChart" height="200"></canvas>
     </div>
     {% endif %}
     <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <h2 class="text-lg font-semibold mb-3">Comment Activity</h2>
         <canvas id="commentsChart" height="200"></canvas>
     </div>
+    {% if reactions %}
+    <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-3">Reactions</h2>
+        <canvas id="reactionsChart" height="200"></canvas>
+    </div>
+    {% endif %}
+    {% if countries %}
+    <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-3">Top Countries</h2>
+        <canvas id="countriesChart" height="200"></canvas>
+    </div>
+    {% endif %}
+    {% if browsers %}
+    <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-3">Browsers</h2>
+        <canvas id="browsersChart" height="200"></canvas>
+    </div>
+    {% endif %}
+    {% if os_data %}
+    <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-3">Operating Systems</h2>
+        <canvas id="osChart" height="200"></canvas>
+    </div>
+    {% endif %}
+    {% if devices %}
+    <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-3">Device Type</h2>
+        <canvas id="devicesChart" height="200"></canvas>
+    </div>
+    {% endif %}
+    {% if engagement %}
+    <div class="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-3">Engagement Events</h2>
+        <canvas id="engagementChart" height="200"></canvas>
+    </div>
+    {% endif %}
 </div>
 
+{% if geo_visits %}
+<div class="mb-8 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <h2 class="text-lg font-semibold mb-3">Visitor Locations</h2>
+    <div id="map" style="height: 400px;"></div>
+</div>
+{% endif %}
+
+{% if countries %}
+<div class="mb-8 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <h2 class="text-lg font-semibold mb-3">Countries & Cities</h2>
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="text-left border-b border-gray-200 dark:border-gray-700">
+                <th class="py-2 pr-4">Country</th>
+                <th class="py-2 pr-4">Visits</th>
+                <th class="py-2">Cities</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in countries %}
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="py-2 pr-4">{{ c.country }}</td>
+                <td class="py-2 pr-4">{{ c.count }}</td>
+                <td class="py-2">{{ c.cities | map(attribute='city') | join(', ') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if nav_paths %}
+<div class="mb-8 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <h2 class="text-lg font-semibold mb-3">Top Navigation Sources</h2>
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="text-left border-b border-gray-200 dark:border-gray-700">
+                <th class="py-2 pr-4">From</th>
+                <th class="py-2">Transitions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in nav_paths %}
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="py-2 pr-4 max-w-xs truncate">{{ p.from_url }}</td>
+                <td class="py-2">{{ p.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 {% if top_referrers %}
-<div class="mb-8">
+<div class="mb-8 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
     <h2 class="text-lg font-semibold mb-3">Top Referrers</h2>
     <table class="w-full text-sm">
         <thead>
@@ -84,7 +172,11 @@ const isDark = document.documentElement.classList.contains('dark');
 const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 const textColor = isDark ? '#9ca3af' : '#6b7280';
 
-function chartConfig(label, labels, data) {
+const COLORS = isDark
+    ? ['rgba(96,165,250,0.5)','rgba(167,139,250,0.5)','rgba(52,211,153,0.5)','rgba(251,191,36,0.5)','rgba(248,113,113,0.5)','rgba(94,234,212,0.5)','rgba(251,146,60,0.5)']
+    : ['rgba(37,99,235,0.5)','rgba(124,58,237,0.5)','rgba(5,150,105,0.5)','rgba(202,138,4,0.5)','rgba(220,38,38,0.5)','rgba(13,148,136,0.5)','rgba(234,88,12,0.5)'];
+
+function barChart(label, labels, data) {
     return {
         type: 'bar',
         data: {
@@ -92,8 +184,8 @@ function chartConfig(label, labels, data) {
             datasets: [{
                 label: label,
                 data: data,
-                backgroundColor: isDark ? 'rgba(96,165,250,0.5)' : 'rgba(37,99,235,0.5)',
-                borderColor: isDark ? 'rgba(96,165,250,1)' : 'rgba(37,99,235,1)',
+                backgroundColor: COLORS.slice(0, labels.length),
+                borderColor: COLORS.slice(0, labels.length).map(c => c.replace('0.5','1')),
                 borderWidth: 1,
             }]
         },
@@ -108,28 +200,112 @@ function chartConfig(label, labels, data) {
     };
 }
 
-var visitsLabels = {{ visits_by_date | map(attribute='day') | list | tojson }};
-var visitsData = {{ visits_by_date | map(attribute='count') | list | tojson }};
-if (visitsLabels.length) {
-    new Chart(document.getElementById('visitsChart'), chartConfig('Visits', visitsLabels, visitsData));
+function doughnutChart(labels, data) {
+    return {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: COLORS.slice(0, labels.length),
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: textColor, padding: 12, boxWidth: 12 }
+                }
+            }
+        }
+    };
 }
 
-var postLabels = {{ top_posts | map(attribute='title') | list | tojson }};
-var postData = {{ top_posts | map(attribute='count') | list | tojson }};
-if (postLabels.length) {
-    new Chart(document.getElementById('topPostsChart'), chartConfig('Views', postLabels, postData));
-}
+(function () {
+    var labels, data;
 
-{% if reactions %}
-var reactionLabels = {{ reactions.keys() | list | tojson }};
-var reactionData = {{ reactions.values() | list | tojson }};
-new Chart(document.getElementById('reactionsChart'), chartConfig('Count', reactionLabels, reactionData));
+    labels = {{ visits_by_date | map(attribute='day') | list | tojson }};
+    data = {{ visits_by_date | map(attribute='count') | list | tojson }};
+    if (labels.length) new Chart(document.getElementById('visitsChart'), barChart('Visits', labels, data));
+
+    labels = {{ top_posts | map(attribute='title') | list | tojson }};
+    data = {{ top_posts | map(attribute='count') | list | tojson }};
+    if (labels.length) new Chart(document.getElementById('topPostsChart'), barChart('Views', labels, data));
+
+    {% if scroll_dist %}
+    labels = {{ scroll_dist | map(attribute='bucket') | list | tojson }};
+    data = {{ scroll_dist | map(attribute='count') | list | tojson }};
+    new Chart(document.getElementById('scrollDistChart'), barChart('Pages', labels, data));
+    {% endif %}
+
+    labels = {{ comments_by_date | map(attribute='day') | list | tojson }};
+    data = {{ comments_by_date | map(attribute='count') | list | tojson }};
+    if (labels.length) new Chart(document.getElementById('commentsChart'), barChart('Comments', labels, data));
+
+    {% if reactions %}
+    labels = {{ reactions.keys() | list | tojson }};
+    data = {{ reactions.values() | list | tojson }};
+    new Chart(document.getElementById('reactionsChart'), doughnutChart(labels, data));
+    {% endif %}
+
+    {% if countries %}
+    labels = {{ countries | map(attribute='country') | list | tojson }};
+    data = {{ countries | map(attribute='count') | list | tojson }};
+    if (labels.length) new Chart(document.getElementById('countriesChart'), barChart('Visits', labels.slice(0, 10), data.slice(0, 10)));
+    {% endif %}
+
+    {% if browsers %}
+    labels = {{ browsers | map(attribute='browser') | list | tojson }};
+    data = {{ browsers | map(attribute='count') | list | tojson }};
+    new Chart(document.getElementById('browsersChart'), doughnutChart(labels, data));
+    {% endif %}
+
+    {% if os_data %}
+    labels = {{ os_data | map(attribute='os') | list | tojson }};
+    data = {{ os_data | map(attribute='count') | list | tojson }};
+    new Chart(document.getElementById('osChart'), doughnutChart(labels, data));
+    {% endif %}
+
+    {% if devices %}
+    labels = {{ devices | map(attribute='type') | list | tojson }};
+    data = {{ devices | map(attribute='count') | list | tojson }};
+    new Chart(document.getElementById('devicesChart'), doughnutChart(labels, data));
+    {% endif %}
+
+    {% if engagement %}
+    labels = {{ engagement | map(attribute='event_type') | list | tojson }};
+    data = {{ engagement | map(attribute='count') | list | tojson }};
+    new Chart(document.getElementById('engagementChart'), barChart('Events', labels, data));
+    {% endif %}
+})();
+
+{% if geo_visits %}
+(function () {
+    var isDark = document.documentElement.classList.contains('dark');
+    var tiles = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    var map = L.map('map').setView([30, 0], 2);
+    L.tileLayer(tiles, {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+        maxZoom: 18,
+    }).addTo(map);
+
+    var points = {{ geo_visits | tojson }};
+    var maxCount = Math.max.apply(null, points.map(function(p) { return p.count; }));
+    points.forEach(function(p) {
+        var radius = 4 + (p.count / maxCount) * 20;
+        L.circleMarker([p.latitude, p.longitude], {
+            radius: radius,
+            fillColor: isDark ? '#60a5fa' : '#2563eb',
+            color: '#fff',
+            weight: 1,
+            fillOpacity: 0.7
+        }).bindPopup('<b>' + p.city + ', ' + p.country + '</b><br>' + p.count + ' visit' + (p.count > 1 ? 's' : '')).addTo(map);
+    });
+})();
 {% endif %}
-
-var commentLabels = {{ comments_by_date | map(attribute='day') | list | tojson }};
-var commentData = {{ comments_by_date | map(attribute='count') | list | tojson }};
-if (commentLabels.length) {
-    new Chart(document.getElementById('commentsChart'), chartConfig('Comments', commentLabels, commentData));
-}
 </script>
 {% endblock %}

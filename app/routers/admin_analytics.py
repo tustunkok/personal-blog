@@ -22,10 +22,18 @@ def analytics_page(request: Request, db: Session = Depends(get_db)):
     top_posts = svc.top_posts_by_visits(5)
     reactions = svc.reaction_counts()
     avg_scroll = svc.avg_scroll_depth()
+    scroll_dist = svc.scroll_depth_distribution()
     visits_by_date = svc.visits_by_date(30)
     top_referrers = svc.top_referrers(10)
     comments_by_date = svc.comment_activity_by_date(30)
     new_comments = svc.new_comment_count()
+    countries = svc.countries_breakdown()
+    browsers = svc.browser_breakdown()
+    os_data = svc.os_breakdown()
+    devices = svc.device_breakdown()
+    engagement = svc.engagement_breakdown()
+    nav_paths = svc.top_navigation_paths(10)
+    geo_visits = svc.geo_visits_for_map()
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -36,10 +44,18 @@ def analytics_page(request: Request, db: Session = Depends(get_db)):
             "top_posts": top_posts,
             "reactions": reactions,
             "avg_scroll": avg_scroll,
+            "scroll_dist": scroll_dist,
             "visits_by_date": visits_by_date,
             "top_referrers": top_referrers,
             "comments_by_date": comments_by_date,
             "new_comments": new_comments,
+            "countries": countries,
+            "browsers": browsers,
+            "os_data": os_data,
+            "devices": devices,
+            "engagement": engagement,
+            "nav_paths": nav_paths,
+            "geo_visits": geo_visits,
         },
     )
 

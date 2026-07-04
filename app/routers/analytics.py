@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.services.analytics_service import AnalyticsService
+from app.utils.geoip import lookup_ip_async
 
 router = APIRouter(prefix="/api/analytics")
 
@@ -44,6 +45,8 @@ async def record_visit(request: Request, db: Session = Depends(get_db)):
         request.client.host if request.client else None
     )
 
+    geo = await lookup_ip_async(ip) if ip else None
+
     visit_id = svc.record_visit(
         path=body.get("path", "/"),
         fingerprint_hash=body.get("fingerprint_hash"),
@@ -52,6 +55,12 @@ async def record_visit(request: Request, db: Session = Depends(get_db)):
         user_agent=request.headers.get("User-Agent"),
         referrer=body.get("referrer"),
         accept_language=request.headers.get("Accept-Language"),
+        country=geo.get("country") if geo else None,
+        city=geo.get("city") if geo else None,
+        region=geo.get("region") if geo else None,
+        isp=geo.get("isp") if geo else None,
+        latitude=geo.get("latitude") if geo else None,
+        longitude=geo.get("longitude") if geo else None,
     )
     return {"visit_id": visit_id}
 

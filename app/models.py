@@ -144,6 +144,8 @@ class Visit(Base):
     region = Column(String(100), nullable=True)
     isp = Column(String(200), nullable=True)
     is_vpn = Column(Boolean, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
