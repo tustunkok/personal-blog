@@ -101,3 +101,15 @@
 - [x] Comment data tracked: IP, UA, fingerprint_hash, char count, submission time
 - [x] Admin comment list with approve/delete/ban-fingerprint actions
 - [x] 9 tests passing, lint clean
+
+#11 Reactions + Shares - DONE (5d53a8a)
+
+- [x] Five reaction buttons (like, clap, bookmark, insightful, mind-blown) on post page
+- [x] Clicking a reaction registers it via HTMX and updates counts
+- [x] Same fingerprint can react only once per type per post (fingerprint_hash check)
+- [x] Reaction data tracked: type, IP, UA, scroll position, time-to-react
+- [x] Share buttons (Twitter, LinkedIn, Reddit, HN, Facebook) open in new window + sendBeacon
+- [x] Share click recorded: platform, IP, UA
+- [x] Reactions and shares rendered on post page between content and comments
+- [x] Added fingerprint_hash column to Reaction model + Alembic migration
+- [x] 7 tests passing, lint clean (123 total passing)
