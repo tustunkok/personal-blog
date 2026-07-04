@@ -38,4 +38,5 @@ Single-context repo. Read `CONTEXT.md` for glossary and `docs/adr/` for architec
 ## Gogs Interactions
 
 - Use `tools/gogs.py` for all interactions with the Gogs issue tracker (create issues, edit issues, manage labels).
-- Call functions from `tools.gogs` directly via `uv run python -c "import sys; sys.path.insert(0, 'tools'); import gogs; ..."`.
+- Use the CLI: `uv run python tools/gogs.py <list-issues|list-labels|list-prs>` for read ops.
+- For write ops, call functions from `tools.gogs` via `uv run python -c "import sys; sys.path.insert(0, 'tools'); import gogs; ..."`.

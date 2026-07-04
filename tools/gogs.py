@@ -173,3 +173,23 @@ def list_open_pull_requests() -> list[dict]:
 def list_closed_pull_requests() -> list[dict]:
     """List all closed pull requests."""
     return [pr for pr in list_pull_requests() if pr.get("state") == "closed"]
+
+
+if __name__ == "__main__":
+    import sys
+
+    cmds: dict[str, tuple] = {
+        "list-issues": (list_issues, []),
+        "list-labels": (list_labels, []),
+        "list-prs": (list_pull_requests, []),
+    }
+
+    usage = "usage: uv run python tools/gogs.py <" + "|".join(cmds) + "> [args]"
+
+    if len(sys.argv) < 2 or sys.argv[1] not in cmds:
+        print(usage)
+        sys.exit(1)
+
+    fn, args = cmds[sys.argv[1]]
+    result = fn(*args, *sys.argv[2:])
+    print(json.dumps(result, indent=2))
