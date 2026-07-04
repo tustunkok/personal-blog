@@ -15,6 +15,7 @@ from app.database import SessionLocal, get_db
 from app.models import Post
 from app.routers import (
     admin_posts,
+    analytics,
     archive,
     comments,
     images,
@@ -61,6 +62,7 @@ app.include_router(comments.router)
 app.include_router(comments.public_router)
 app.include_router(reactions_shares.reactions_router)
 app.include_router(reactions_shares.shares_router)
+app.include_router(analytics.router)
 
 
 class AdminAuthMiddleware(BaseHTTPMiddleware):

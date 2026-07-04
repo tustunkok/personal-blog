@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
+<script>window.__post_id = {{ post.id }};</script>
 <meta name="description" content="{{ post.excerpt }}">
 <meta property="og:title" content="{{ post.title }}">
 <meta property="og:description" content="{{ post.excerpt }}">

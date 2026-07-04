@@ -31,6 +31,8 @@
         var h = document.documentElement.scrollHeight - window.innerHeight;
         scrollPos = h > 0 ? window.scrollY / h : 0;
     });
+    var fpInput = document.getElementById('reactions-fingerprint');
+    if (fpInput && window.__fp_hash) fpInput.value = window.__fp_hash;
     var section = document.getElementById('reactions-section');
     if (section) {
         var btns = section.querySelectorAll('button[hx-post]');

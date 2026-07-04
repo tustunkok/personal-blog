@@ -113,3 +113,17 @@
 - [x] Reactions and shares rendered on post page between content and comments
 - [x] Added fingerprint_hash column to Reaction model + Alembic migration
 - [x] 7 tests passing, lint clean (123 total passing)
+
+#12 Visitor analytics: visits, geo, fingerprint, sessions, engagement - DONE
+
+- [x] Fingerprint registration endpoint at POST /api/analytics/fingerprint (SHA-256 hash from device attrs)
+- [x] Client-side fingerprint.js collects screen, OS, browser, timezone, touch, languages, DNT, etc.
+- [x] Visit recording endpoint at POST /api/analytics/visit (IP, UA, referrer, path, accept-language)
+- [x] Heartbeat endpoint at POST /api/analytics/heartbeat (scroll depth, end-reached tracking)
+- [x] Engagement events endpoint at POST /api/analytics/event (copy, click, code_block_click, external_link_click, text_selection)
+- [x] Navigation paths endpoint at POST /api/analytics/navigate (from_url → to_url)
+- [x] Client-side analytics.js: visit recording, 30s heartbeats, scroll milestones, end-of-page detection, engagement listeners
+- [x] analytics.js loaded in base.html for all pages, post.html sets __post_id for post-specific tracking
+- [x] Comments and reactions now use fingerprint hash from fingerprint.js via window.__fp_hash
+- [x] GeoIP enrichment columns ready in Visit model (country, city, region, ISP, VPN) — optional geoip2 integration
+- [x] 11 passing analytics tests (134 total), lint clean

@@ -35,6 +35,7 @@
         id="comment-form"
     >
         <input type="hidden" name="load_time" id="comment-load-time" value="">
+        <input type="hidden" name="fingerprint" id="comment-fingerprint" value="">
         <div style="position:absolute;left:-9999px" aria-hidden="true">
             <input type="text" name="website" tabindex="-1" autocomplete="off">
         </div>
@@ -66,5 +67,8 @@
     </form>
     <script>
         document.getElementById('comment-load-time').value = Date.now() / 1000;
+        if (window.__fp_hash) {
+            document.getElementById('comment-fingerprint').value = window.__fp_hash;
+        }
     </script>
 </div>
