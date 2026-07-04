@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Settings - Tolga Ustunkok{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Settings</h1>
+<a href="/admin" class="text-sm text-blue-600 hover:underline">&larr; Back to Dashboard</a>
+
+<form method="post" class="mt-6 max-w-lg space-y-4">
+    <div>
+        <label class="block text-sm font-medium mb-1">Blog Name</label>
+        <input type="text" name="blog_name" value="{{ values.get('blog_name', '') }}"
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Tagline</label>
+        <input type="text" name="blog_tagline" value="{{ values.get('blog_tagline', '') }}"
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Author Name</label>
+        <input type="text" name="blog_author" value="{{ values.get('blog_author', '') }}"
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">RSS Post Count</label>
+        <input type="number" name="rss_post_count" value="{{ values.get('rss_post_count', '20') }}"
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Date Format</label>
+        <input type="text" name="date_format" value="{{ values.get('date_format', '%B %d, %Y') }}"
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Bot Time Gate (seconds)</label>
+        <input type="number" name="bot_time_gate" value="{{ values.get('bot_time_gate', '3') }}"
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Turnstile Site Key</label>
+        <input type="text" name="turnstile_site_key" value="{{ values.get('turnstile_site_key', '') }}"
+            class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 rounded px-3 py-2">
+    </div>
+    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Settings</button>
+</form>
+{% endblock %}

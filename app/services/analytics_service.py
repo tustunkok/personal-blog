@@ -2,6 +2,7 @@ import hashlib
 import json
 
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.models import Fingerprint, NavigationPath, Visit
 
@@ -149,3 +150,93 @@ class AnalyticsService:
         )
         self.db.add(nav)
         self.db.commit()
+
+    def visits_today_count(self) -> int:
+        return (
+            self.db.query(Visit)
+            .filter(
+                func.date(Visit.created_at) == func.date(func.now()),
+            )
+            .count()
+        )
+
+    def visits_total_count(self) -> int:
+        return self.db.query(Visit).count()
+
+    def top_posts_by_visits(self, limit: int = 5) -> list[dict]:
+        from app.models import Post
+
+        results = (
+            self.db.query(Post.title, func.count(Visit.id).label("cnt"))
+            .join(Visit, Visit.post_id == Post.id)
+            .filter(Post.deleted_at.is_(None))
+            .group_by(Post.id)
+            .order_by(func.count(Visit.id).desc())
+            .limit(limit)
+            .all()
+        )
+        return [{"title": r.title, "count": r.cnt} for r in results]
+
+    def new_comment_count(self) -> int:
+        from app.models import Comment
+
+        return (
+            self.db.query(Comment)
+            .filter(Comment.is_approved.is_(False), Comment.is_spam.is_(False))
+            .count()
+        )
+
+    def reaction_counts(self) -> dict[str, int]:
+        from app.models import Reaction
+
+        rows = (
+            self.db.query(Reaction.reaction_type, func.count(Reaction.id).label("cnt"))
+            .group_by(Reaction.reaction_type)
+            .all()
+        )
+        return {r.reaction_type: r.cnt for r in rows}
+
+    def visits_by_date(self, days: int = 30) -> list[dict]:
+        rows = (
+            self.db.query(
+                func.date(Visit.created_at).label("day"),
+                func.count(Visit.id).label("cnt"),
+            )
+            .group_by(func.date(Visit.created_at))
+            .order_by(func.date(Visit.created_at).desc())
+            .limit(days)
+            .all()
+        )
+        return [{"day": str(r.day), "count": r.cnt} for r in rows]
+
+    def top_referrers(self, limit: int = 10) -> list[dict]:
+        rows = (
+            self.db.query(Visit.referrer, func.count(Visit.id).label("cnt"))
+            .filter(Visit.referrer.isnot(None), Visit.referrer != "")
+            .group_by(Visit.referrer)
+            .order_by(func.count(Visit.id).desc())
+            .limit(limit)
+            .all()
+        )
+        return [{"referrer": r.referrer, "count": r.cnt} for r in rows]
+
+    def avg_scroll_depth(self) -> float | None:
+        from app.models import PageSession
+
+        result = self.db.query(func.avg(PageSession.scroll_depth)).scalar()
+        return round(float(result), 1) if result else None
+
+    def comment_activity_by_date(self, days: int = 30) -> list[dict]:
+        from app.models import Comment
+
+        rows = (
+            self.db.query(
+                func.date(Comment.created_at).label("day"),
+                func.count(Comment.id).label("cnt"),
+            )
+            .group_by(func.date(Comment.created_at))
+            .order_by(func.date(Comment.created_at).desc())
+            .limit(days)
+            .all()
+        )
+        return [{"day": str(r.day), "count": r.cnt} for r in rows]

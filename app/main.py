@@ -14,7 +14,9 @@ from app import auth
 from app.database import SessionLocal, get_db
 from app.models import Post
 from app.routers import (
+    admin_analytics,
     admin_posts,
+    admin_settings,
     analytics,
     archive,
     comments,
@@ -48,7 +50,9 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 app.state.templates = templates
 
+app.include_router(admin_analytics.router)
 app.include_router(admin_posts.router)
+app.include_router(admin_settings.router)
 app.include_router(images.router)
 app.include_router(images.public_router)
 app.include_router(public_posts.router)
@@ -154,8 +158,22 @@ def admin_login(request: Request, password: str = Form(...)):
 
 
 @app.get("/admin")
-def admin_dashboard(request: Request):
-    return templates.TemplateResponse(request, "admin/dashboard.html")
+def admin_dashboard(request: Request, db: Session = Depends(get_db)):
+    from app.services.analytics_service import AnalyticsService
+
+    svc = AnalyticsService(db)
+    views_today = svc.visits_today_count()
+    top_posts = svc.top_posts_by_visits(5)
+    new_comments = svc.new_comment_count()
+    return templates.TemplateResponse(
+        request,
+        "admin/dashboard.html",
+        {
+            "views_today": views_today,
+            "top_posts": top_posts,
+            "new_comments": new_comments,
+        },
+    )
 
 
 @app.get("/admin/logout")
