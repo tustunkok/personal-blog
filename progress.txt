@@ -90,3 +90,14 @@
 - [x] Auto-generated OG images at /posts/{slug}/og-image (Pillow, 1200x630)
 - [x] 12 SEO tests (107 total passing)
 - [x] Lint clean
+
+#10 Comments: guest commenting, bot protection, moderation - DONE (09dc460)
+
+- [x] Comment form on post page with name, email (optional), body via HTMX
+- [x] Honeypot field catches bots (invisible field, filled → reject silently)
+- [x] Time gate rejects submissions under 3 seconds from page load
+- [x] Rate limiting: 3 per 5 min per fingerprint (429 response)
+- [x] Banning a fingerprint causes future comments to be held for moderation (is_approved=False)
+- [x] Comment data tracked: IP, UA, fingerprint_hash, char count, submission time
+- [x] Admin comment list with approve/delete/ban-fingerprint actions
+- [x] 9 tests passing, lint clean

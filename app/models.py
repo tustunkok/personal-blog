@@ -122,6 +122,7 @@ class Fingerprint(Base):
     memory_gb = Column(Float, nullable=True)
     connection_type = Column(String(20), nullable=True)
     dark_mode_preferred = Column(Boolean, nullable=True)
+    banned = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
@@ -191,6 +192,7 @@ class Comment(Base):
     ip = Column(String(45), nullable=True)
     user_agent = Column(String(512), nullable=True)
     fingerprint_id = Column(Integer, ForeignKey("fingerprints.id"), nullable=True)
+    fingerprint_hash = Column(String(64), nullable=True, index=True)
     is_approved = Column(Boolean, default=False)
     is_spam = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)

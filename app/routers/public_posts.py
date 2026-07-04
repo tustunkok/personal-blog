@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Post
+from app.models import Comment, Post
 from app.services.post_service import PostService
 
 router = APIRouter()
@@ -57,6 +57,7 @@ def view_post(slug: str, request: Request, db: Session = Depends(get_db)):
             "position": position,
             "prev_post": prev_post,
             "next_post": next_post,
+            "comments_html": _render_comments(request, db, post),
         },
     )
 
@@ -111,3 +112,15 @@ def serve_og_image(slug: str, request: Request, db: Session = Depends(get_db)):
     img.save(buf, format="PNG")
     buf.seek(0)
     return Response(content=buf.getvalue(), media_type="image/png")
+
+
+def _render_comments(request: Request, db: Session, post: Post) -> str:
+    comments = (
+        db.query(Comment)
+        .filter(Comment.post_id == post.id, Comment.is_approved.is_(True))
+        .order_by(Comment.created_at.asc())
+        .all()
+    )
+    return request.app.state.templates.get_template("_comments.html").render(
+        {"request": request, "post": post, "comments": comments}
+    )

@@ -16,6 +16,7 @@ from app.models import Post
 from app.routers import (
     admin_posts,
     archive,
+    comments,
     images,
     pages,
     public_posts,
@@ -55,6 +56,8 @@ app.include_router(archive.router)
 app.include_router(pages.router)
 app.include_router(pages.admin_router)
 app.include_router(seo.router)
+app.include_router(comments.router)
+app.include_router(comments.public_router)
 
 
 class AdminAuthMiddleware(BaseHTTPMiddleware):

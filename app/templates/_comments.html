@@ -1,0 +1,70 @@
+<div id="comments-section">
+    {% if message %}
+    <div class="text-green-600 dark:text-green-400 text-sm mb-4">{{ message }}</div>
+    {% endif %}
+
+    <h3 class="text-lg font-semibold mb-4">Comments</h3>
+
+    {% if comments %}
+    <div class="space-y-4 mb-6">
+        {% for comment in comments %}
+        <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
+            <div class="text-sm text-gray-500 mb-1">
+                {% if comment.name %}
+                <strong class="text-gray-800 dark:text-gray-200">{{ comment.name }}</strong> &middot;
+                {% endif %}
+                <time datetime="{{ comment.created_at.isoformat() }}">
+                    {{ comment.created_at.strftime('%B %d, %Y') }}
+                </time>
+            </div>
+            <div class="prose dark:prose-invert text-sm max-w-none">
+                {{ comment.body }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm mb-6">No comments yet.</p>
+    {% endif %}
+
+    <form
+        hx-post="/posts/{{ post.slug }}/comments"
+        hx-target="#comments-section"
+        hx-swap="outerHTML"
+        class="space-y-3"
+        id="comment-form"
+    >
+        <input type="hidden" name="load_time" id="comment-load-time" value="">
+        <div style="position:absolute;left:-9999px" aria-hidden="true">
+            <input type="text" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <input
+            type="text"
+            name="name"
+            placeholder="Name (optional)"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+        >
+        <input
+            type="email"
+            name="email"
+            placeholder="Email (optional)"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+        >
+        <textarea
+            name="body"
+            rows="4"
+            placeholder="Write a comment..."
+            required
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+        ></textarea>
+        <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+        >
+            Submit Comment
+        </button>
+    </form>
+    <script>
+        document.getElementById('comment-load-time').value = Date.now() / 1000;
+    </script>
+</div>
