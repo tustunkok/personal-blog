@@ -63,6 +63,7 @@ def test_authenticated_session_can_access_admin():
     session_cookie = login_resp.cookies.get("blog_session")
     assert session_cookie is not None
 
-    response = client.get("/admin", cookies={"blog_session": session_cookie})
+    client.cookies.set("blog_session", session_cookie)
+    response = client.get("/admin")
     assert response.status_code == 200
     assert "Dashboard" in response.text

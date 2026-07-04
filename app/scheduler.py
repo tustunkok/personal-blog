@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -25,7 +25,7 @@ class PostScheduler:
                 db.query(Post)
                 .filter(
                     Post.status == "scheduled",
-                    Post.publish_at <= datetime.utcnow(),
+                    Post.publish_at <= datetime.now(timezone.utc),
                     Post.deleted_at.is_(None),
                 )
                 .all()

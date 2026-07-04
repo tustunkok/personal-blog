@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -30,7 +30,7 @@ def test_catch_up_transitions_past_due_scheduled_posts():
         slug="past-due-post",
         body="content",
         status="scheduled",
-        publish_at=datetime.utcnow() - timedelta(hours=1),
+        publish_at=datetime.now(timezone.utc) - timedelta(hours=1),
     )
     db.add(post)
     db.commit()
@@ -49,6 +49,7 @@ def test_catch_up_transitions_past_due_scheduled_posts():
     reloaded = db.query(Post).filter(Post.id == post_id).first()
     assert reloaded.status == "published"
     db.close()
+    engine.dispose()
 
 
 def test_schedule_post_adds_job():
@@ -59,7 +60,7 @@ def test_schedule_post_adds_job():
     scheduler = PostScheduler(sf)
     scheduler.start()
 
-    publish_time = datetime.utcnow() + timedelta(days=7)
+    publish_time = datetime.now(timezone.utc) + timedelta(days=7)
     scheduler.schedule_post(42, publish_time)
 
     job = scheduler._scheduler.get_job("publish_post_42")
@@ -67,6 +68,8 @@ def test_schedule_post_adds_job():
     assert job.id == "publish_post_42"
 
     scheduler.stop()
+
+    engine.dispose()
 
 
 def test_unschedule_post_removes_job():
@@ -77,7 +80,7 @@ def test_unschedule_post_removes_job():
     scheduler = PostScheduler(sf)
     scheduler.start()
 
-    publish_time = datetime.utcnow() + timedelta(days=7)
+    publish_time = datetime.now(timezone.utc) + timedelta(days=7)
     scheduler.schedule_post(42, publish_time)
     assert scheduler._scheduler.get_job("publish_post_42") is not None
 
@@ -85,6 +88,8 @@ def test_unschedule_post_removes_job():
     assert scheduler._scheduler.get_job("publish_post_42") is None
 
     scheduler.stop()
+
+    engine.dispose()
 
 
 def test_reschedule_post_updates_run_date():
@@ -95,16 +100,18 @@ def test_reschedule_post_updates_run_date():
     scheduler = PostScheduler(sf)
     scheduler.start()
 
-    first_time = datetime.utcnow() + timedelta(days=7)
+    first_time = datetime.now(timezone.utc) + timedelta(days=7)
     scheduler.schedule_post(42, first_time)
 
-    second_time = datetime.utcnow() + timedelta(days=14)
+    second_time = datetime.now(timezone.utc) + timedelta(days=14)
     scheduler.schedule_post(42, second_time)
 
     job = scheduler._scheduler.get_job("publish_post_42")
     assert job is not None
 
     scheduler.stop()
+
+    engine.dispose()
 
 
 def test_job_fires_and_publishes_post():
@@ -118,7 +125,7 @@ def test_job_fires_and_publishes_post():
         slug="future-post",
         body="content",
         status="scheduled",
-        publish_at=datetime.utcnow() + timedelta(hours=2),
+        publish_at=datetime.now(timezone.utc) + timedelta(hours=2),
     )
     db.add(post)
     db.commit()
@@ -130,7 +137,7 @@ def test_job_fires_and_publishes_post():
     scheduler = PostScheduler(sf)
     scheduler.start()
 
-    schedule_time = datetime.utcnow() + timedelta(hours=2)
+    schedule_time = datetime.now(timezone.utc) + timedelta(hours=2)
     scheduler.schedule_post(post_id, schedule_time)
 
     assert scheduler._scheduler.get_job(f"publish_post_{post_id}") is not None
@@ -140,7 +147,7 @@ def test_job_fires_and_publishes_post():
     assert post.status == "scheduled"
     db.close()
 
-    with freeze_time(datetime.utcnow() + timedelta(hours=3)):
+    with freeze_time(datetime.now(timezone.utc) + timedelta(hours=3)):
         scheduler._publish_post(post_id)
 
     db = sf()
@@ -149,6 +156,8 @@ def test_job_fires_and_publishes_post():
     db.close()
 
     scheduler.stop()
+
+    engine.dispose()
 
 
 def test_scheduled_post_not_published_if_status_changed():
@@ -176,6 +185,7 @@ def test_scheduled_post_not_published_if_status_changed():
     reloaded = db.query(Post).filter(Post.id == post_id).first()
     assert reloaded.status == "draft"
     db.close()
+    engine.dispose()
 
 
 def test_catch_up_does_not_publish_deleted_posts():
@@ -187,8 +197,8 @@ def test_catch_up_does_not_publish_deleted_posts():
         slug="deleted-scheduled",
         body="content",
         status="scheduled",
-        publish_at=datetime.utcnow() - timedelta(hours=1),
-        deleted_at=datetime.utcnow(),
+        publish_at=datetime.now(timezone.utc) - timedelta(hours=1),
+        deleted_at=datetime.now(timezone.utc),
     )
     db.add(post)
     db.commit()
@@ -205,6 +215,7 @@ def test_catch_up_does_not_publish_deleted_posts():
     reloaded = db.query(Post).filter(Post.id == post_id).first()
     assert reloaded.status == "scheduled"
     db.close()
+    engine.dispose()
 
 
 class CountingScheduler:
@@ -233,6 +244,7 @@ def test_service_schedule_post_calls_scheduler():
     assert len(scheduler.scheduled) == 1
     assert scheduler.scheduled[0][0] == post.id
     db.close()
+    engine.dispose()
 
 
 def test_service_unpublish_scheduled_unschedules_job():
@@ -251,6 +263,7 @@ def test_service_unpublish_scheduled_unschedules_job():
     assert len(scheduler.unscheduled) == 1
     assert scheduler.unscheduled[0] == post.id
     db.close()
+    engine.dispose()
 
 
 def test_service_update_publish_at_reschedules_on_scheduled_post():
@@ -269,3 +282,4 @@ def test_service_update_publish_at_reschedules_on_scheduled_post():
     assert len(scheduler.scheduled) == 1
     assert scheduler.scheduled[0][0] == post.id
     db.close()
+    engine.dispose()

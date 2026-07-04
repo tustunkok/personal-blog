@@ -32,6 +32,7 @@ def test_create_draft_post():
     assert post.updated_at is not None
 
     db.close()
+    db.bind.dispose()
 
 
 def test_update_post_fields():
@@ -51,6 +52,7 @@ def test_update_post_fields():
     assert updated.status == "draft"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_slug_auto_generated_from_title():
@@ -61,6 +63,7 @@ def test_slug_auto_generated_from_title():
     assert post.slug == "a-complex-title-with-symbols"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_custom_slug_on_create():
@@ -71,6 +74,7 @@ def test_custom_slug_on_create():
     assert post.slug == "my-custom-slug"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_update_does_not_reset_custom_slug():
@@ -83,6 +87,7 @@ def test_update_does_not_reset_custom_slug():
     assert updated.slug == "kept-slug"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_slug_can_be_overridden_on_edit():
@@ -96,6 +101,7 @@ def test_slug_can_be_overridden_on_edit():
     assert updated.slug == "better-slug"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_publish_draft():
@@ -109,6 +115,7 @@ def test_publish_draft():
     assert published.id == post.id
 
     db.close()
+    db.bind.dispose()
 
 
 def test_schedule_post():
@@ -122,6 +129,7 @@ def test_schedule_post():
     assert scheduled.publish_at is not None
 
     db.close()
+    db.bind.dispose()
 
 
 def test_unpublish_post():
@@ -135,6 +143,7 @@ def test_unpublish_post():
     assert unpublished.status == "draft"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_soft_delete_post():
@@ -147,6 +156,7 @@ def test_soft_delete_post():
     assert deleted.deleted_at is not None
 
     db.close()
+    db.bind.dispose()
 
 
 def test_restore_post():
@@ -160,6 +170,7 @@ def test_restore_post():
     assert restored.deleted_at is None
 
     db.close()
+    db.bind.dispose()
 
 
 def test_cannot_publish_deleted_post():
@@ -173,6 +184,7 @@ def test_cannot_publish_deleted_post():
         svc.publish_post(post)
 
     db.close()
+    db.bind.dispose()
 
 
 def test_cannot_unpublish_non_published_post():
@@ -185,6 +197,7 @@ def test_cannot_unpublish_non_published_post():
         svc.unpublish_post(post)
 
     db.close()
+    db.bind.dispose()
 
 
 def test_cannot_delete_already_deleted_post():
@@ -198,6 +211,7 @@ def test_cannot_delete_already_deleted_post():
         svc.soft_delete_post(post)
 
     db.close()
+    db.bind.dispose()
 
 
 def test_update_post_creates_version():
@@ -215,6 +229,7 @@ def test_update_post_creates_version():
     assert updated.title == "Updated Title"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_multiple_updates_create_multiple_versions():
@@ -238,6 +253,7 @@ def test_multiple_updates_create_multiple_versions():
     assert versions[1].version_number == 2
 
     db.close()
+    db.bind.dispose()
 
 
 def test_get_versions_returns_newest_first():
@@ -254,6 +270,7 @@ def test_get_versions_returns_newest_first():
     assert versions[1].title == "v1"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_revert_to_version_restores_content():
@@ -274,6 +291,7 @@ def test_revert_to_version_restores_content():
     assert restored.body == "body2"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_autosave_updates_post_without_creating_version():
@@ -297,6 +315,7 @@ def test_autosave_updates_post_without_creating_version():
     assert versions_after == versions_before
 
     db.close()
+    db.bind.dispose()
 
 
 def test_create_post_with_tags():
@@ -309,6 +328,7 @@ def test_create_post_with_tags():
     assert sorted(tag_names) == ["python", "testing"]
 
     db.close()
+    db.bind.dispose()
 
 
 def test_create_post_with_tags_strips_whitespace():
@@ -321,6 +341,7 @@ def test_create_post_with_tags_strips_whitespace():
     assert tag_names == ["fastapi", "python", "testing"]
 
     db.close()
+    db.bind.dispose()
 
 
 def test_create_post_with_empty_tags():
@@ -334,6 +355,7 @@ def test_create_post_with_empty_tags():
     assert post2.tags == []
 
     db.close()
+    db.bind.dispose()
 
 
 def test_update_post_sets_tags():
@@ -349,6 +371,7 @@ def test_update_post_sets_tags():
     assert tag_names == ["python", "sqlalchemy"]
 
     db.close()
+    db.bind.dispose()
 
 
 def test_update_post_clears_tags_with_empty_string():
@@ -362,6 +385,7 @@ def test_update_post_clears_tags_with_empty_string():
     assert post.tags == []
 
     db.close()
+    db.bind.dispose()
 
 
 def test_tags_are_reused_across_posts():
@@ -375,6 +399,7 @@ def test_tags_are_reused_across_posts():
     assert tag_count == 3
 
     db.close()
+    db.bind.dispose()
 
 
 def test_set_series_assigns_post_to_series():
@@ -399,6 +424,7 @@ def test_set_series_assigns_post_to_series():
     assert row.position == 1
 
     db.close()
+    db.bind.dispose()
 
 
 def test_set_series_updates_position():
@@ -422,6 +448,7 @@ def test_set_series_updates_position():
     assert row.position == 5
 
     db.close()
+    db.bind.dispose()
 
 
 def test_get_series_for_post():
@@ -441,6 +468,7 @@ def test_get_series_for_post():
     assert result.title == "My Series"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_get_series_returns_none_for_unassigned_post():
@@ -451,6 +479,7 @@ def test_get_series_returns_none_for_unassigned_post():
     assert svc.get_series(post) is None
 
     db.close()
+    db.bind.dispose()
 
 
 def test_get_series_posts_returns_ordered():
@@ -476,6 +505,7 @@ def test_get_series_posts_returns_ordered():
     assert posts[2].title == "Part 3"
 
     db.close()
+    db.bind.dispose()
 
 
 def test_remove_from_series():
@@ -500,3 +530,4 @@ def test_remove_from_series():
     assert row is None
 
     db.close()
+    db.bind.dispose()

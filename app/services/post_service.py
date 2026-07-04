@@ -1,6 +1,6 @@
 import re
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -184,7 +184,7 @@ class PostService:
     def soft_delete_post(self, post: Post) -> Post:
         if post.deleted_at is not None:
             raise InvalidTransitionError("Post is already soft-deleted.")
-        post.deleted_at = datetime.utcnow()
+        post.deleted_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(post)
         return post

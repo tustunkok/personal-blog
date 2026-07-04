@@ -24,3 +24,9 @@ dev = [
     "pytest>=9.1.1",
     "ruff>=0.15.20",
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+    "ignore:datetime.datetime.utcnow\\(\\) is deprecated:DeprecationWarning:sqlalchemy",
+]

@@ -29,3 +29,4 @@ def test_all_tables_defined():
         "images",
     }
     assert expected.issubset(table_names), f"Missing tables: {expected - table_names}"
+    engine.dispose()
