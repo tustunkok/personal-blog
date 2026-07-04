@@ -76,3 +76,17 @@
 - [x] Public pages exclude drafts, scheduled, and soft-deleted posts
 - [x] 13 new tests (95 total passing)
 - [x] Lint clean
+
+#9 SEO + RSS - DONE (4eb68fd)
+
+- [x] robots.txt at /robots.txt referencing /sitemap.xml
+- [x] sitemap.xml listing published posts + /about + /now
+- [x] RSS feed at /feed.xml with 20 most recent posts (published + scheduled), full HTML content
+- [x] Open Graph meta tags (og:title, og:description, og:image, og:url, og:type) on post pages
+- [x] Twitter Card meta tags (summary_large_image) on post pages
+- [x] JSON-LD BlogPosting structured data on post pages
+- [x] Meta description tag on post pages
+- [x] Canonical URL link tag when post.canonical_url is set
+- [x] Auto-generated OG images at /posts/{slug}/og-image (Pillow, 1200x630)
+- [x] 12 SEO tests (107 total passing)
+- [x] Lint clean
