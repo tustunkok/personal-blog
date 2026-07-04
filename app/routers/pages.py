@@ -1,11 +1,10 @@
-import markdown
-
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Setting
+from app.utils.markdown import render as render_markdown
 
 router = APIRouter()
 
@@ -14,7 +13,7 @@ router = APIRouter()
 def about(request: Request, db: Session = Depends(get_db)):
     setting = db.query(Setting).filter(Setting.key == "about_content").first()
     content = setting.value if setting else "About page coming soon."
-    content_html = markdown.markdown(content, extensions=["fenced_code"])
+    content_html = render_markdown(content)
     return request.app.state.templates.TemplateResponse(
         request, "page.html", {"title": "About", "content_html": content_html}
     )
@@ -24,7 +23,7 @@ def about(request: Request, db: Session = Depends(get_db)):
 def now(request: Request, db: Session = Depends(get_db)):
     setting = db.query(Setting).filter(Setting.key == "now_content").first()
     content = setting.value if setting else "Now page coming soon."
-    content_html = markdown.markdown(content, extensions=["fenced_code"])
+    content_html = render_markdown(content)
     return request.app.state.templates.TemplateResponse(
         request, "page.html", {"title": "Now", "content_html": content_html}
     )

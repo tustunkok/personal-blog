@@ -1,6 +1,5 @@
 import io
 
-import markdown
 from PIL import Image, ImageDraw, ImageFont
 
 from fastapi import APIRouter, Depends, Request
@@ -11,6 +10,7 @@ from app.database import get_db
 from app.models import Comment, Post
 from app.services.post_service import PostService
 from app.services.reaction_service import ReactionService
+from app.utils.markdown import render as render_markdown
 
 router = APIRouter()
 
@@ -27,7 +27,7 @@ def view_post(slug: str, request: Request, db: Session = Depends(get_db)):
     if not post:
         return HTMLResponse(status_code=404)
 
-    content_html = markdown.markdown(post.body, extensions=["fenced_code"])
+    content_html = render_markdown(post.body)
 
     svc = PostService(db)
     current_series = svc.get_series(post)

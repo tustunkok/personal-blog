@@ -1,4 +1,4 @@
-import markdown
+from app.utils.markdown import render as render_markdown
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import PlainTextResponse, Response
@@ -59,7 +59,7 @@ def feed_xml(request: Request, db: Session = Depends(get_db)):
     base_url = str(request.base_url).rstrip("/")
     items = []
     for post in posts:
-        content_html = markdown.markdown(post.body, extensions=["fenced_code"])
+        content_html = render_markdown(post.body)
         pub_date = post.publish_at if post.publish_at else post.created_at
         items.append(
             "<item>\n"

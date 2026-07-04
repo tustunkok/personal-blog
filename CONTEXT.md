@@ -98,6 +98,12 @@ _Avoid_: Social share, tweet
 The single credential for accessing the admin area, sourced from an environment variable.
 _Avoid_: Auth token, login
 
+### Math Rendering
+
+**Math Block**:
+A LaTeX expression in a post body, delimited by `$...$` (inline) or `$$...$$` (display). Protected from Markdown processing by pymdown-extensions' arithmatex and rendered client-side by KaTeX.
+_Avoid_: Formula, equation
+
 ### Syndication
 
 **RSS Feed**:
