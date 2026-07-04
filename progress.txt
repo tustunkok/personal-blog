@@ -116,6 +116,19 @@
 
 #12 Visitor analytics: visits, geo, fingerprint, sessions, engagement - DONE
 
+#13 Admin dashboard: analytics snapshot, charts, settings, CSV/JSON export - DONE (8f95546)
+
+- [x] Dashboard snapshot: views today, top 5 posts, new comment count on /admin
+- [x] Analytics page at /admin/analytics with Chart.js graphs (visits over time, top posts, reactions, comment activity)
+- [x] Stats cards: total visits, views today, new comments, avg scroll depth
+- [x] Top referrers table
+- [x] CSV export at /admin/analytics/visits.csv
+- [x] JSON export at /admin/analytics/visits.json
+- [x] Settings page at /admin/settings saves: blog_name, blog_tagline, blog_author, rss_post_count, date_format, bot_time_gate, turnstile_site_key
+- [x] AnalyticsService query methods: visits_today_count, top_posts_by_visits, new_comment_count, reaction_counts, visits_by_date, top_referrers, avg_scroll_depth, comment_activity_by_date
+- [x] 14 new integration tests (148 total passing)
+- [x] Lint clean
+
 - [x] Fingerprint registration endpoint at POST /api/analytics/fingerprint (SHA-256 hash from device attrs)
 - [x] Client-side fingerprint.js collects screen, OS, browser, timezone, touch, languages, DNT, etc.
 - [x] Visit recording endpoint at POST /api/analytics/visit (IP, UA, referrer, path, accept-language)
