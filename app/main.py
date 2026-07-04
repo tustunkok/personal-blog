@@ -13,7 +13,16 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app import auth
 from app.database import SessionLocal, get_db
 from app.models import Post
-from app.routers import admin_posts, archive, images, pages, public_posts, search, tags
+from app.routers import (
+    admin_posts,
+    archive,
+    images,
+    pages,
+    public_posts,
+    search,
+    seo,
+    tags,
+)
 from app.scheduler import PostScheduler
 
 PAGE_SIZE = 10
@@ -45,6 +54,7 @@ app.include_router(search.router)
 app.include_router(archive.router)
 app.include_router(pages.router)
 app.include_router(pages.admin_router)
+app.include_router(seo.router)
 
 
 class AdminAuthMiddleware(BaseHTTPMiddleware):

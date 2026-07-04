@@ -1,4 +1,7 @@
+import io
+
 import markdown
+from PIL import Image, ImageDraw, ImageFont
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, Response
@@ -70,3 +73,41 @@ def serve_featured_image(slug: str, db: Session = Depends(get_db)):
     if not post or not post.featured_image:
         return Response(status_code=404)
     return Response(content=post.featured_image, media_type="image/jpeg")
+
+
+@router.get("/posts/{slug}/og-image")
+def serve_og_image(slug: str, request: Request, db: Session = Depends(get_db)):
+    post = (
+        db.query(Post)
+        .filter(
+            Post.slug == slug, Post.deleted_at.is_(None), Post.status == "published"
+        )
+        .first()
+    )
+    if not post:
+        return Response(status_code=404)
+
+    img = Image.new("RGB", (1200, 630), color=(17, 24, 39))
+    draw = ImageDraw.Draw(img)
+
+    try:
+        title_font = ImageFont.truetype("arial.ttf", 48)
+        sub_font = ImageFont.truetype("arial.ttf", 28)
+    except OSError:
+        title_font = ImageFont.load_default()
+        sub_font = ImageFont.load_default()
+
+    date_str = (
+        post.publish_at.strftime("%B %d, %Y")
+        if post.publish_at
+        else post.created_at.strftime("%B %d, %Y")
+    )
+
+    draw.text((60, 200), post.title, fill=(255, 255, 255), font=title_font)
+    draw.text((60, 380), "Tolga Ustunkok", fill=(156, 163, 175), font=sub_font)
+    draw.text((60, 430), date_str, fill=(156, 163, 175), font=sub_font)
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return Response(content=buf.getvalue(), media_type="image/png")
