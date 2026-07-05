@@ -6,12 +6,14 @@ from pathlib import Path
 VERSION_REGEX = re.compile(
     r'(?<![a-zA-Z0-9])(\d+\.\d+\.\d+)(?:-([^\s+"\'`]+))?(?:\+([^\s+"\'`]+))?')
 
+PYPROJECT_VERSION_REGEX = re.compile(
+    r'^version\s*=\s*"(\d+\.\d+\.\d+)"\s*$', re.MULTILINE)
+
 DEFAULT_PATTERNS = [
     'pyproject.toml',
     'setup.py',
     'setup.cfg',
     '**/__init__.py',
-    'Dockerfile',
 ]
 
 AUTO_EXCLUDES = {'.git', 'node_modules', '.venv', '__pycache__'}
@@ -64,15 +66,27 @@ def find_files(root, patterns, excludes):
 def extract_versions(filepath):
     content = filepath.read_text(encoding='utf-8')
     matches = []
-    for m in VERSION_REGEX.finditer(content):
-        matches.append({
-            'start': m.start(),
-            'end': m.end(),
-            'full': m.group(0),
-            'base': m.group(1),
-            'pre_release': m.group(2),
-            'build': m.group(3),
-        })
+
+    if filepath.name == 'pyproject.toml':
+        for m in PYPROJECT_VERSION_REGEX.finditer(content):
+            matches.append({
+                'start': m.start(1),
+                'end': m.end(1),
+                'full': m.group(1),
+                'base': m.group(1),
+                'pre_release': None,
+                'build': None,
+            })
+    else:
+        for m in VERSION_REGEX.finditer(content):
+            matches.append({
+                'start': m.start(),
+                'end': m.end(),
+                'full': m.group(0),
+                'base': m.group(1),
+                'pre_release': m.group(2),
+                'build': m.group(3),
+            })
     return content, matches
 
 
@@ -166,7 +180,7 @@ def main(argv=None):
         print(f'Error: {root} is not a directory.', file=sys.stderr)
         sys.exit(1)
 
-    patterns = list(DEFAULT_PATTERNS) + args.pattern
+    patterns = args.pattern if args.pattern else list(DEFAULT_PATTERNS)
     files = find_files(root, patterns, args.exclude)
 
     if not files:
