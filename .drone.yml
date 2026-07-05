@@ -11,6 +11,10 @@ steps:
       - pip install pytest httpx ruff
       - ruff check
       - pytest
+    when:
+      event:
+        exclude:
+          - tag
 
   - name: docker
     image: plugins/docker

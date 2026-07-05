@@ -1,0 +1,10 @@
+services:
+  blog:
+    image: ghcr.io/tustunkok/personal-blog:0.1.2
+    ports:
+      - "8765:8000"
+    volumes:
+      - /opt/personal-blog:/app/data
+    environment:
+      - BLOG_DB_PATH=/app/data/blog.db
+    restart: unless-stopped
