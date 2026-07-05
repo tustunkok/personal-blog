@@ -23,6 +23,8 @@ steps:
       repo: ghcr.io/tustunkok/personal-blog
       auto_tag: true
       tags: latest
+      cache_from: ghcr.io/tustunkok/personal-blog:latest
+      pull_image: true
     when:
       event:
         - tag
