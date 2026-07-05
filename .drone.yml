@@ -1,0 +1,28 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: test
+    image: python:3.13-slim
+    commands:
+      - pip install -r requirements.txt
+      - pip install pytest httpx ruff
+      - ruff check
+      - pytest
+
+  - name: docker
+    image: plugins/docker
+    settings:
+      registry: ghcr.io
+      username:
+        from_secret: ghcr_username
+      password:
+        from_secret: ghcr_token
+      repo: ghcr.io/tustunkok/personal-blog
+      auto_tag: true
+      tags: latest
+    when:
+      event:
+        - tag
