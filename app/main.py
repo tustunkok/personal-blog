@@ -148,7 +148,7 @@ def admin_login(request: Request, password: str = Form(...)):
             key="blog_session",
             value=auth.create_session(),
             httponly=True,
-            secure=True,
+            secure=request.url.scheme == "https",
             samesite="lax",
             max_age=86400 * 30,
         )
