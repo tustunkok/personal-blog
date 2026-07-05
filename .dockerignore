@@ -1,0 +1,16 @@
+__pycache__/
+*.py[oc]
+.venv/
+.ruff_cache/
+.pytest_cache/
+.git/
+.gitignore
+TOKEN
+blog.db
+test*.db
+tests/
+tools/
+docs/
+AGENTS.md
+CONTEXT.md
+README.md
