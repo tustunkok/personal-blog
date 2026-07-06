@@ -19,6 +19,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script defer>
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+        mermaid.run();
+    </script>
     <style>
         .prose > p { margin-top: 1.25em; margin-bottom: 1.25em; }
         .prose > p:first-child { margin-top: 0; }

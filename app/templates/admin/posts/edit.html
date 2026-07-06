@@ -87,22 +87,9 @@
 <script src="/static/js/autosave.js"></script>
 {% endif %}
 <script src="https://cdn.jsdelivr.net/npm/easymde@2.20.0/dist/easymde.min.js"></script>
+<script src="/static/js/easymde-setup.js"></script>
 <script src="/static/js/paste-upload.js"></script>
 <script>
-    var easyMDE = new EasyMDE({
-        element: document.getElementById('body-editor'),
-        previewRender: function(plainText, preview) {
-            var html = this.parent.markdown(plainText);
-            setTimeout(function() {
-                if (typeof renderMathInElement === 'function') {
-                    renderMathInElement(preview, {delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false}
-                    ]});
-                }
-            }, 10);
-            return html;
-        }
-    });
+    var easyMDE = createEasyMDE('body-editor');
 </script>
 {% endblock %}

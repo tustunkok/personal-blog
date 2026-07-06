@@ -196,7 +196,7 @@ class PostService:
         if post.deleted_at is not None:
             prefix = f"{_DELETED_PREFIX}{post.id}-"
             if post.slug.startswith(prefix):
-                desired = post.slug[len(prefix):]
+                desired = post.slug[len(prefix) :]
                 desired = self._unique_slug(desired, exclude_id=post.id)
                 post.slug = desired
         post.deleted_at = None
@@ -215,7 +215,15 @@ class PostService:
         counter = 1
         while True:
             candidate = f"{slug}-{counter}"
-            if not self.db.query(Post).filter(Post.slug == candidate, Post.id != exclude_id, Post.deleted_at.is_(None)).first():
+            if (
+                not self.db.query(Post)
+                .filter(
+                    Post.slug == candidate,
+                    Post.id != exclude_id,
+                    Post.deleted_at.is_(None),
+                )
+                .first()
+            ):
                 return candidate
             counter += 1
 

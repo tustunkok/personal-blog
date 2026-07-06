@@ -67,13 +67,7 @@ def view_post(slug: str, request: Request, db: Session = Depends(get_db)):
 
 @router.get("/posts/{slug}/featured-image")
 def serve_featured_image(slug: str, db: Session = Depends(get_db)):
-    post = (
-        db.query(Post)
-        .filter(
-            Post.slug == slug, Post.deleted_at.is_(None)
-        )
-        .first()
-    )
+    post = db.query(Post).filter(Post.slug == slug, Post.deleted_at.is_(None)).first()
     if not post or not post.featured_image:
         return Response(status_code=404)
     return Response(content=post.featured_image, media_type="image/jpeg")

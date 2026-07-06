@@ -56,6 +56,14 @@ _Avoid_: Collection, sequence, chain
 An optional URL indicating the original source if the post was cross-posted elsewhere.
 _Avoid_: Original URL, cross-post link
 
+**Static Page**:
+A standalone page (About, Now) with a title and markdown body, stored in the settings table. Rendered via the same markdown pipeline as posts. Edited through the admin area with a markdown editor.
+_Avoid_: Custom page, info page
+
+**Mermaid Diagram**:
+A diagram defined inline in a post or static page using ` ```mermaid` fenced code blocks. Rendered client-side by mermaid.js into SVG. Same pattern as Math Blocks: parsed server-side into a container element, rendered by JS in the browser.
+_Avoid_: Chart, flowchart, graph
+
 ### Visitor Analytics
 
 **Visit**:
