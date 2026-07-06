@@ -70,7 +70,7 @@ def serve_featured_image(slug: str, db: Session = Depends(get_db)):
     post = (
         db.query(Post)
         .filter(
-            Post.slug == slug, Post.deleted_at.is_(None), Post.status == "published"
+            Post.slug == slug, Post.deleted_at.is_(None)
         )
         .first()
     )
