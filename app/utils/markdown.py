@@ -15,6 +15,7 @@ def render(content: str) -> str:
         extensions=[
             "pymdownx.superfences",
             "pymdownx.arithmatex",
+            "tables",
         ],
         extension_configs={
             "pymdownx.superfences": {

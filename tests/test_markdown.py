@@ -28,3 +28,17 @@ def test_math_blocks_still_render():
     content = """$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$"""
     html = render(content)
     assert "\\(" in html or "arithmatex" in html.lower()
+
+
+def test_table_renders_html():
+    content = """| Name | Age |
+|------|-----|
+| Alice | 30 |
+| Bob | 25 |
+"""
+    html = render(content)
+    assert "<table>" in html
+    assert "<thead>" in html
+    assert "<tbody>" in html
+    assert "<th>Name</th>" in html
+    assert "<td>Alice</td>" in html
