@@ -18,7 +18,7 @@
                 </time>
             </div>
             <div class="prose dark:prose-invert text-sm max-w-none">
-                {{ comment.body }}
+                {{ render_markdown(comment.body) | safe }}
             </div>
         </div>
         {% endfor %}

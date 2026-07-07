@@ -4,7 +4,7 @@
         <a href="/posts/{{ post.slug }}" class="hover:underline">{{ post.title }}</a>
     </h2>
     {% if post.excerpt %}
-    <p class="text-gray-500 dark:text-gray-400 mb-3">{{ post.excerpt }}</p>
+    <div class="prose dark:prose-invert max-w-none text-gray-500 dark:text-gray-400 mb-3">{{ render_markdown(post.excerpt) | safe }}</div>
     {% endif %}
     <div class="flex items-center gap-3 text-sm text-gray-400">
         <time datetime="{{ post.publish_at.isoformat() if post.publish_at else post.created_at.isoformat() }}">

@@ -217,6 +217,17 @@ def test_archive_page_hides_draft_scheduled_deleted(client):
     assert "Draft Archive" not in resp.text
 
 
+def test_home_page_renders_markdown_in_excerpts(client):
+    """Bug: excerpts with markdown should render as HTML on the home page."""
+    ac = _auth_client(client)
+    _create_published_post(ac, "Markdown Post", "Body", "**bold** and *italic* excerpt")
+
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "<strong>bold</strong>" in resp.text
+    assert "<em>italic</em>" in resp.text
+
+
 def test_about_page_renders_default(client):
     resp = client.get("/about")
     assert resp.status_code == 200

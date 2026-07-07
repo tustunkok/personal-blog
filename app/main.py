@@ -29,6 +29,7 @@ from app.routers import (
     seo,
     tags,
 )
+from app.utils.markdown import render as render_markdown
 from app.scheduler import PostScheduler
 
 PAGE_SIZE = 10
@@ -49,6 +50,7 @@ app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
+templates.env.globals["render_markdown"] = render_markdown
 app.state.templates = templates
 
 app.include_router(admin_analytics.router)
