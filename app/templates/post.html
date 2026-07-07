@@ -62,7 +62,7 @@
         {% endif %}
         <h1 class="text-3xl font-bold mb-2">{{ post.title }}</h1>
         {% if post.excerpt %}
-        <p class="text-gray-500 dark:text-gray-400 text-lg">{{ post.excerpt }}</p>
+        <div class="prose dark:prose-invert max-w-none text-gray-500 dark:text-gray-400 text-lg">{{ render_markdown(post.excerpt) | safe }}</div>
         {% endif %}
         <time class="text-sm text-gray-400" datetime="{{ post.publish_at.isoformat() if post.publish_at else post.created_at.isoformat() }}">
             {{ post.publish_at.strftime('%B %d, %Y') if post.publish_at else post.created_at.strftime('%B %d, %Y') }}
