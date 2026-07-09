@@ -236,7 +236,7 @@ class AnalyticsService:
         from app.models import PageSession
 
         result = self.db.query(func.avg(PageSession.scroll_depth)).scalar()
-        return round(float(result), 1) if result else None
+        return round(float(result) * 100, 1) if result else None
 
     def scroll_depth_distribution(self) -> list[dict]:
         from app.models import PageSession

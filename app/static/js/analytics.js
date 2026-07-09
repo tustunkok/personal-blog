@@ -27,7 +27,7 @@
                 visitId = data.visit_id;
                 window.__visit_id = visitId;
             })
-            .catch(function () {});
+            .catch(function (e) { console.error('Analytics visit error:', e); });
     }
 
     function sendHeartbeat() {
@@ -53,7 +53,7 @@
                 scroll_depth: parseFloat(scrollDepth.toFixed(4)),
                 end_reached: endReachedSent
             })
-        }).catch(function () {});
+        }).catch(function (e) { console.error('Analytics error:', e); });
     }
 
     function sendEvent(type, data) {
@@ -67,7 +67,7 @@
                 post_id: window.__post_id || null,
                 data: data
             })
-        }).catch(function () {});
+        }).catch(function (e) { console.error('Analytics error:', e); });
     }
 
     function sendNavigation(fromUrl) {
@@ -80,7 +80,7 @@
                 from_url: fromUrl,
                 to_url: window.location.pathname
             })
-        }).catch(function () {});
+        }).catch(function (e) { console.error('Analytics error:', e); });
     }
 
     function initEngagementListeners() {
@@ -128,6 +128,7 @@
     }
 
     function checkEndReached() {
+        if (!visitId) return;
         if (endReachedSent) return;
         var docH = document.documentElement;
         var totalH = docH.scrollHeight - window.innerHeight;
@@ -142,7 +143,7 @@
                     scroll_depth: 1.0,
                     end_reached: true
                 })
-            }).catch(function () {});
+            }).catch(function (e) { console.error('Analytics error:', e); });
         }
     }
 
