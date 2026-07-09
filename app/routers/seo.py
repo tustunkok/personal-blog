@@ -21,7 +21,7 @@ def sitemap_xml(request: Request, db: Session = Depends(get_db)):
     posts = (
         db.query(Post)
         .filter(Post.status == "published", Post.deleted_at.is_(None))
-        .order_by(Post.publish_at.desc())
+        .order_by(func.coalesce(Post.publish_at, Post.created_at).desc())
         .all()
     )
 

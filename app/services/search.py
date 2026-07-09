@@ -1,4 +1,4 @@
-from sqlalchemy import text
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app.models import Post
@@ -54,6 +54,6 @@ def search_posts(db: Session, query: str, limit: int = 50) -> list[Post]:
             Post.status == "published",
             Post.deleted_at.is_(None),
         )
-        .order_by(Post.publish_at.desc())
+        .order_by(func.coalesce(Post.publish_at, Post.created_at).desc())
         .all()
     )

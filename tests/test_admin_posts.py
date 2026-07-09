@@ -380,3 +380,92 @@ def test_edit_form_has_easymde_target_textarea(client):
     resp = client.get("/admin/posts/new")
     assert resp.status_code == 200
     assert 'id="body-editor"' in resp.text
+
+
+def test_editor_preview_styles_headings(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview h1" in style
+    assert ".editor-preview h2" in style
+    assert ".editor-preview h3" in style
+
+
+def test_editor_preview_styles_lists(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview ul" in style
+    assert ".editor-preview ol" in style
+    assert "list-style" in style
+
+
+def test_editor_preview_styles_blockquote(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview blockquote" in style
+
+
+def test_editor_preview_styles_code(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview code" in style
+    assert ".editor-preview pre" in style
+
+
+def test_editor_preview_styles_tables(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview table" in style
+
+
+def test_editor_preview_styles_links(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview a" in style
+
+
+def test_editor_preview_styles_images_and_hr(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview img" in style
+    assert ".editor-preview hr" in style
+
+
+def test_editor_preview_strong_has_font_weight(client):
+    _auth_client(client)
+    resp = client.get("/admin/posts/new")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview strong" in style
+
+
+def test_page_edit_has_editor_preview_styles(client):
+    _auth_client(client)
+    resp = client.get("/admin/pages/about")
+    assert resp.status_code == 200
+    style = _extract_style_block(resp.text)
+    assert ".editor-preview h1" in style
+    assert ".editor-preview h2" in style
+    assert ".editor-preview ul" in style
+    assert ".editor-preview blockquote" in style
+
+
+def _extract_style_block(html: str) -> str:
+    start = html.find("<style>")
+    end = html.find("</style>", start)
+    if start == -1 or end == -1:
+        return ""
+    return html[start + len("<style>") : end]

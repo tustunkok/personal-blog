@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Post, Tag
+from sqlalchemy import func
 
 router = APIRouter()
 
@@ -29,7 +30,7 @@ def tag_posts(name: str, request: Request, db: Session = Depends(get_db)):
             Post.status == "published",
             Post.deleted_at.is_(None),
         )
-        .order_by(Post.publish_at.desc())
+        .order_by(func.coalesce(Post.publish_at, Post.created_at).desc())
         .all()
     )
     return request.app.state.templates.TemplateResponse(

@@ -1,4 +1,5 @@
 import os
+import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -132,16 +133,16 @@ def test_home_page_pagination_10_per_page(client):
 
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "Excerpt 1<" in resp.text
-    assert "Excerpt 10<" in resp.text
-    assert "Excerpt 11<" not in resp.text
-    assert "Excerpt 12<" not in resp.text
+    assert "Excerpt 12<" in resp.text
+    assert "Excerpt 3<" in resp.text
+    assert "Excerpt 2<" not in resp.text
+    assert "Excerpt 1<" not in resp.text
 
     resp = client.get("/?page=2")
     assert resp.status_code == 200
-    assert "Excerpt 11<" in resp.text
-    assert "Excerpt 12<" in resp.text
-    assert "Excerpt 10<" not in resp.text
+    assert "Excerpt 2<" in resp.text
+    assert "Excerpt 1<" in resp.text
+    assert "Excerpt 3<" not in resp.text
 
 
 def test_htmx_load_more_returns_next_page(client):
@@ -151,9 +152,9 @@ def test_htmx_load_more_returns_next_page(client):
 
     resp = client.get("/posts-page?page=2")
     assert resp.status_code == 200
-    assert "Excerpt 11<" in resp.text
-    assert "Excerpt 12<" in resp.text
-    assert "Excerpt 10<" not in resp.text
+    assert "Excerpt 2<" in resp.text
+    assert "Excerpt 1<" in resp.text
+    assert "Excerpt 3<" not in resp.text
 
 
 def test_search_returns_matching_published_posts(client):
@@ -276,3 +277,37 @@ def test_about_now_editing_requires_auth(client):
     )
     assert resp.status_code == 302
     assert "/admin/login" in resp.headers["location"]
+
+
+def test_home_page_orders_posts_newest_first(client):
+    ac = _auth_client(client)
+    for i in range(3):
+        _create_published_post(
+            ac, f"Order Post {i + 1}", f"Body {i + 1}", f"Excerpt {i + 1}"
+        )
+        time.sleep(0.2)
+
+    resp = client.get("/")
+    assert resp.status_code == 200
+    text = resp.text
+    pos3 = text.index("Order Post 3")
+    pos2 = text.index("Order Post 2")
+    pos1 = text.index("Order Post 1")
+    assert pos3 < pos2 < pos1, "Posts should be newest first on home page"
+
+
+def test_archive_page_orders_posts_newest_first(client):
+    ac = _auth_client(client)
+    for i in range(3):
+        _create_published_post(
+            ac, f"Archive Post {i + 1}", f"Body {i + 1}", f"Excerpt {i + 1}"
+        )
+        time.sleep(0.2)
+
+    resp = client.get("/archive")
+    assert resp.status_code == 200
+    text = resp.text
+    pos3 = text.index("Archive Post 3")
+    pos2 = text.index("Archive Post 2")
+    pos1 = text.index("Archive Post 1")
+    assert pos3 < pos2 < pos1, "Posts should be newest first on archive page"

@@ -156,6 +156,7 @@ class PostService:
         if post.deleted_at is not None:
             raise InvalidTransitionError("Cannot publish a soft-deleted post.")
         post.status = "published"
+        post.publish_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(post)
         return post

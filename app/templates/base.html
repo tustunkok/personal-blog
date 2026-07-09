@@ -25,35 +25,35 @@
         mermaid.run();
     </script>
     <style>
-        .prose > p { margin-top: 1.25em; margin-bottom: 1.25em; }
-        .prose > p:first-child { margin-top: 0; }
-        .prose > p:last-child { margin-bottom: 0; }
-        .prose h1 { font-size: 2.25em; margin-top: 0; margin-bottom: 0.8888889em; line-height: 1.1111111; }
-        .prose h2 { font-size: 1.5em; margin-top: 2em; margin-bottom: 1em; line-height: 1.3333333; }
-        .prose h3 { font-size: 1.25em; margin-top: 1.6em; margin-bottom: 0.6em; line-height: 1.6; }
-        .prose h4 { margin-top: 1.5em; margin-bottom: 0.5em; line-height: 1.5; }
-        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { font-weight: 600; }
-        .prose ul, .prose ol { margin-top: 1.25em; margin-bottom: 1.25em; padding-left: 1.625em; }
-        .prose ul { list-style-type: disc; }
-        .prose ol { list-style-type: decimal; }
-        .prose li { margin-top: 0.5em; margin-bottom: 0.5em; }
-        .prose blockquote { font-weight: 500; font-style: italic; color: inherit; border-left: 0.25rem solid; border-color: #d1d5db; padding-left: 1rem; margin-top: 1.6em; margin-bottom: 1.6em; }
-        .dark .prose blockquote { border-color: #374151; }
-        .prose a { color: currentColor; text-decoration: underline; }
-        .prose strong { font-weight: 600; }
-        .prose code { font-family: ui-monospace, monospace; font-size: 0.875em; background: #f3f4f6; padding: 0.125em 0.25em; border-radius: 0.25rem; }
-        .dark .prose code { background: #1f2937; }
-        .prose pre { margin-top: 1.6em; margin-bottom: 1.6em; }
-        .prose img { margin-top: 2em; margin-bottom: 2em; }
-        .prose hr { margin-top: 3em; margin-bottom: 3em; border: 0; border-top: 1px solid #d1d5db; }
-        .dark .prose hr { border-color: #374151; }
-        .prose table { width: 100%; table-layout: auto; text-align: left; margin-top: 2em; margin-bottom: 2em; }
-        .prose thead { border-bottom: 1px solid #d1d5db; }
-        .dark .prose thead { border-color: #374151; }
-        .prose thead th { font-weight: 600; vertical-align: bottom; padding: 0 0.5714286em 0.5714286em 0; }
-        .prose tbody tr { border-bottom: 1px solid #e5e7eb; }
-        .dark .prose tbody tr { border-color: #1f2937; }
-        .prose tbody td { vertical-align: baseline; padding: 0.5714286em 0.5714286em 0.5714286em 0; }
+        .prose > p, .editor-preview > p { margin-top: 1.25em; margin-bottom: 1.25em; }
+        .prose > p:first-child, .editor-preview > p:first-child { margin-top: 0; }
+        .prose > p:last-child, .editor-preview > p:last-child { margin-bottom: 0; }
+        .prose h1, .editor-preview h1 { font-size: 2.25em; margin-top: 0; margin-bottom: 0.8888889em; line-height: 1.1111111; }
+        .prose h2, .editor-preview h2 { font-size: 1.5em; margin-top: 2em; margin-bottom: 1em; line-height: 1.3333333; }
+        .prose h3, .editor-preview h3 { font-size: 1.25em; margin-top: 1.6em; margin-bottom: 0.6em; line-height: 1.6; }
+        .prose h4, .editor-preview h4 { margin-top: 1.5em; margin-bottom: 0.5em; line-height: 1.5; }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6, .editor-preview h1, .editor-preview h2, .editor-preview h3, .editor-preview h4, .editor-preview h5, .editor-preview h6 { font-weight: 600; }
+        .prose ul, .prose ol, .editor-preview ul, .editor-preview ol { margin-top: 1.25em; margin-bottom: 1.25em; padding-left: 1.625em; }
+        .prose ul, .editor-preview ul { list-style-type: disc; }
+        .prose ol, .editor-preview ol { list-style-type: decimal; }
+        .prose li, .editor-preview li { margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose blockquote, .editor-preview blockquote { font-weight: 500; font-style: italic; color: inherit; border-left: 0.25rem solid; border-color: #d1d5db; padding-left: 1rem; margin-top: 1.6em; margin-bottom: 1.6em; }
+        .dark .prose blockquote, .dark .editor-preview blockquote { border-color: #374151; }
+        .prose a, .editor-preview a { color: currentColor; text-decoration: underline; }
+        .prose strong, .editor-preview strong { font-weight: 600; }
+        .prose code, .editor-preview code { font-family: ui-monospace, monospace; font-size: 0.875em; background: #f3f4f6; padding: 0.125em 0.25em; border-radius: 0.25rem; }
+        .dark .prose code, .dark .editor-preview code { background: #1f2937; }
+        .prose pre, .editor-preview pre { margin-top: 1.6em; margin-bottom: 1.6em; }
+        .prose img, .editor-preview img { margin-top: 2em; margin-bottom: 2em; }
+        .prose hr, .editor-preview hr { margin-top: 3em; margin-bottom: 3em; border: 0; border-top: 1px solid #d1d5db; }
+        .dark .prose hr, .dark .editor-preview hr { border-color: #374151; }
+        .prose table, .editor-preview table { width: 100%; table-layout: auto; text-align: left; margin-top: 2em; margin-bottom: 2em; }
+        .prose thead, .editor-preview thead { border-bottom: 1px solid #d1d5db; }
+        .dark .prose thead, .dark .editor-preview thead { border-color: #374151; }
+        .prose thead th, .editor-preview thead th { font-weight: 600; vertical-align: bottom; padding: 0 0.5714286em 0.5714286em 0; }
+        .prose tbody tr, .editor-preview tbody tr { border-bottom: 1px solid #e5e7eb; }
+        .dark .prose tbody tr, .dark .editor-preview tbody tr { border-color: #1f2937; }
+        .prose tbody td, .editor-preview tbody td { vertical-align: baseline; padding: 0.5714286em 0.5714286em 0.5714286em 0; }
     </style>
     {% block head %}{% endblock %}
 </head>
