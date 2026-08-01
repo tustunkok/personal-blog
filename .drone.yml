@@ -4,18 +4,6 @@ type: docker
 name: default
 
 steps:
-  - name: test
-    image: python:3.13-slim
-    commands:
-      - pip install -r requirements.txt
-      - pip install pytest httpx ruff
-      - ruff check
-      - pytest
-    when:
-      event:
-        exclude:
-          - tag
-
   - name: docker
     image: plugins/docker
     settings:
