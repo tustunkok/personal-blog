@@ -1,0 +1,9 @@
+{
+  "name": "personal-blog-js-tests",
+  "private": true,
+  "description": "Client-side JS regression tests for the personal blog (run via pytest wrapper; node required)",
+  "devDependencies": {
+    "highlight.js": "11.11.1",
+    "jsdom": "^29.1.1"
+  }
+}

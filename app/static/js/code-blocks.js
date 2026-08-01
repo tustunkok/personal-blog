@@ -1,4 +1,12 @@
-hljs.highlightAll();
+// Highlight synchronously instead of hljs.highlightAll(): while the document is
+// still loading, highlightAll() defers to DOMContentLoaded, which would
+// re-tokenize each block AFTER the line numbers below are injected — destroying
+// them and gluing the digits into the code text.
+if (window.hljs) {
+    document.querySelectorAll("pre code").forEach(function (el) {
+        hljs.highlightElement(el);
+    });
+}
 
 document.querySelectorAll("pre > code").forEach(function (codeBlock) {
     var pre = codeBlock.parentNode;
@@ -31,7 +39,7 @@ document.querySelectorAll("pre > code").forEach(function (codeBlock) {
     copyBtn.className = "code-copy";
     copyBtn.textContent = "Copy";
     copyBtn.addEventListener("click", function () {
-        navigator.clipboard.writeText(codeBlock.textContent).then(function () {
+        navigator.clipboard.writeText(codeText(codeBlock)).then(function () {
             copyBtn.textContent = "Copied!";
             setTimeout(function () {
                 copyBtn.textContent = "Copy";
@@ -44,10 +52,28 @@ document.querySelectorAll("pre > code").forEach(function (codeBlock) {
     var lines = codeBlock.innerHTML.split("\n");
     if (lines.length > 1) {
         var numbered = "";
-        for (var i = 0; i < lines.length - 1; i++) {
-            numbered += '<span class="line-number">' + (i + 1) + "</span>" + lines[i] + "\n";
+        for (var i = 0; i < lines.length; i++) {
+            numbered += '<span class="line-number">' + (i + 1) + "</span>" + lines[i];
+            if (i < lines.length - 1) {
+                numbered += "\n";
+            }
         }
-        numbered += lines[lines.length - 1];
         codeBlock.innerHTML = numbered;
     }
 });
+
+// Plain text of the code, excluding the injected line-number spans.
+function codeText(el) {
+    var text = "";
+    el.childNodes.forEach(function (node) {
+        if (node.nodeType === 3) {
+            text += node.textContent;
+        } else if (node.nodeType === 1) {
+            if (node.classList && node.classList.contains("line-number")) {
+                return;
+            }
+            text += codeText(node);
+        }
+    });
+    return text;
+}

@@ -12,3 +12,6 @@ TOKEN
 *_cache/
 blog.db
 test*.db
+
+# Node (tests/js)
+node_modules/
