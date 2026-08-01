@@ -1,5 +1,6 @@
 import datetime
 import os
+import uuid
 
 import pytest
 from fastapi.testclient import TestClient
@@ -32,8 +33,9 @@ def clear_env():
 
 @pytest.fixture
 def client():
+    db_file = f"test_comments_{uuid.uuid4().hex}.db"
     engine = create_engine(
-        "sqlite:///test_comments.db", connect_args={"check_same_thread": False}
+        f"sqlite:///{db_file}", connect_args={"check_same_thread": False}
     )
     Base.metadata.create_all(engine)
     TestingSession = sessionmaker(bind=engine)
@@ -53,7 +55,7 @@ def client():
     app.dependency_overrides.clear()
     engine.dispose()
     try:
-        os.remove("test_comments.db")
+        os.remove(db_file)
     except OSError:
         pass
 
@@ -280,8 +282,8 @@ def test_admin_can_approve_comment(client):
 
     db2 = _db()
     comment = db2.query(Comment).first()
-    assert comment.is_approved is True
-    comment.is_approved = False
+    # New comments start unapproved and require admin review.
+    assert comment.is_approved is False
     comment_id = comment.id
     db2.commit()
     db2.close()

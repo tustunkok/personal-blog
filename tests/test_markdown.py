@@ -10,7 +10,8 @@ flowchart TD
     html = render(content)
     assert '<pre class="mermaid">' in html
     assert "flowchart TD" in html
-    assert "A --> B" in html
+    # text is HTML-escaped by the sanitizer but renders identically in the browser
+    assert "A --&gt; B" in html
 
 
 def test_non_mermaid_fenced_block_renders_code_tag():

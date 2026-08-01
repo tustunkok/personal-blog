@@ -42,7 +42,6 @@ class CommentService:
             if elapsed < TIME_GATE_SECONDS:
                 return None
 
-        is_banned = False
         fingerprint_id = None
 
         if fingerprint:
@@ -67,7 +66,6 @@ class CommentService:
                 .first()
             )
             if fp and fp.banned:
-                is_banned = True
                 fingerprint_id = fp.id
 
         comment = Comment(
@@ -79,7 +77,9 @@ class CommentService:
             user_agent=user_agent,
             fingerprint_hash=fingerprint,
             fingerprint_id=fingerprint_id,
-            is_approved=not is_banned,
+            # New comments always start unapproved: nothing is shown publicly
+            # until an admin reviews it (defense-in-depth against stored XSS).
+            is_approved=False,
         )
         self.db.add(comment)
         self.db.commit()

@@ -15,3 +15,6 @@ test*.db
 
 # Node (tests/js)
 node_modules/
+
+# Session signing secret (auto-generated when BLOG_SESSION_SECRET is unset)
+.session_secret
