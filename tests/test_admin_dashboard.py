@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 
 import pytest
 from fastapi.testclient import TestClient
@@ -193,17 +194,26 @@ def test_dashboard_shows_new_comment_count(client):
     p = Post(title="T", slug="t", body="b", status="published")
     db.add(p)
     db.commit()
+    today = datetime.datetime.now(datetime.UTC)
+    yesterday = today - datetime.timedelta(days=1)
     db.add_all(
         [
-            Comment(post_id=p.id, body="c1"),
-            Comment(post_id=p.id, body="c2", is_approved=True),
+            Comment(post_id=p.id, body="c1", created_at=today),
+            Comment(post_id=p.id, body="c2", created_at=today, is_approved=True),
+            Comment(post_id=p.id, body="c3", created_at=yesterday),
         ]
     )
     db.commit()
     db.close()
 
     resp = c.get("/admin")
-    assert "1" in resp.text
+    # "New Comments" = comments received today, regardless of approval state.
+    m = re.search(
+        r"New Comments</p>\s*<p class=\"text-2xl font-bold\">(\d+)</p>",
+        resp.text,
+    )
+    assert m, "New Comments card not found in rendered dashboard"
+    assert m.group(1) == "2"
 
 
 # --- Analytics page tests ---

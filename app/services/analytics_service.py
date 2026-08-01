@@ -192,9 +192,14 @@ class AnalyticsService:
     def new_comment_count(self) -> int:
         from app.models import Comment
 
+        # "New Comments" means comments received today, matching the
+        # "Views Today" card. Counting unapproved comments would be a dead
+        # metric: submit() auto-approves everyone except banned fingerprints.
         return (
             self.db.query(Comment)
-            .filter(Comment.is_approved.is_(False), Comment.is_spam.is_(False))
+            .filter(
+                func.date(Comment.created_at) == func.date(func.now()),
+            )
             .count()
         )
 
