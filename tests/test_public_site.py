@@ -311,3 +311,36 @@ def test_archive_page_orders_posts_newest_first(client):
     pos2 = text.index("Archive Post 2")
     pos1 = text.index("Archive Post 1")
     assert pos3 < pos2 < pos1, "Posts should be newest first on archive page"
+
+
+def test_search_malformed_fts_queries_do_not_500(client):
+    """Malformed FTS5 queries (unterminated strings, bad syntax) must not crash."""
+    ac = _auth_client(client)
+    _create_published_post(ac, "Python Tips", "Python is great for web dev", "Python")
+    for q in ['"', "OR OR AND", '"unterminated', "NEAR(foo", "[]", "x AND"]:
+        resp = client.get("/search", params={"q": q})
+        assert resp.status_code == 200, f"q={q!r} returned {resp.status_code}"
+
+
+def test_security_headers_present(client):
+    """Responses must carry hardening headers (CSP, framing, MIME, etc.)."""
+    r = client.get("/")
+    expected = [
+        "Content-Security-Policy",
+        "X-Frame-Options",
+        "X-Content-Type-Options",
+        "Referrer-Policy",
+        "Permissions-Policy",
+        "Strict-Transport-Security",
+    ]
+    for header in expected:
+        assert header in r.headers, f"missing security header: {header}"
+
+
+def test_security_headers_on_admin(client):
+    """Admin routes get the same hardening headers."""
+    session = _login(client)
+    client.cookies.set("blog_session", session)
+    r = client.get("/admin")
+    assert "Content-Security-Policy" in r.headers
+    assert "X-Frame-Options" in r.headers
