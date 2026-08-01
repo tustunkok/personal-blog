@@ -67,6 +67,8 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
+nh3==0.3.6
+    # via personal-blog
 pillow==12.3.0
     # via personal-blog
 propcache==0.5.2
